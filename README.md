@@ -1,8 +1,9 @@
-Main make file for virt2real SDK
+Главный управляющий файл virt2real SDK
 
-Commands:
+Можно использовать вот такие команды:
 
 make installsdk
-    Download all SDK components
+    - самая первая команда, скачивает все необходимые компоненты SDK
+
     
 
