@@ -12,8 +12,8 @@ export DEVDIR=${shell pwd}
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
 
-export V=@
-export ECHO=$(V)echo -e
+V=@
+ECHO=$(V)echo -e
 
 help:
 
