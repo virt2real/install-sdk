@@ -53,9 +53,9 @@ installsdk:
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
 
-	#$(V)git clone https://github.com/virt2real/linux-davinci kernel
-	#$(V)git clone https://github.com/virt2real/DVSDK.git dvsdk
-	#$(V)git clone https://github.com/virt2real/dm36x-buildroot.git fs
+	$(V)git clone https://github.com/virt2real/linux-davinci kernel
+	$(V)git clone https://github.com/virt2real/DVSDK.git dvsdk
+	$(V)git clone https://github.com/virt2real/dm36x-buildroot.git fs
 	$(V)git clone https://github.com/virt2real/admin_panel.git adminka
 
 ###########################################################
