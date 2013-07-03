@@ -1,4 +1,2 @@
-install-sdk
-===========
+Main make file for virt2real SDK
 
-Main repo for installing virt2real all SDK components
