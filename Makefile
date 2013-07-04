@@ -60,7 +60,7 @@ help:
 #########################################################
 # Common SDK
 
-getsdk:: getkernel getdvsdk getfs get adminka
+getsdk:: getkernel getdvsdk getfs getadminka
 
 getkernel:
 	$(ECHO) ""
@@ -86,6 +86,14 @@ getadminka:
 	$(ECHO) "\033[1;34mDownload Virt2real admin panel\033[0m"
 	$(ECHO) ""
 	$(V)git clone https://github.com/virt2real/admin_panel.git adminka
+	
+getuboot:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mDownload Virt2real U-Boot\033[0m"
+	$(ECHO) ""
+	$(V)git clone https://github.com/virt2real/v2r_uboot.git uboot
+	
+
 
 ###########################################################
 
@@ -191,6 +199,20 @@ dvsdkinstall:
 	$(V)make --directory=dvsdk cmem_install edma_install irq_install dm365mm_install
 
 #########################################################
+# U-Boot
+
+ubootbuild:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mU-Boot build for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
+	$(ECHO) ""
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) distclean
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
+	$(V)make --directory=uboot CROSS_COMPILE=$(CROSSCOMPILE) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
+
+
+#########################################################
 # Clean all
 
 clean:: kernelclean fsclean dvsdkclean
@@ -198,7 +220,7 @@ clean:: kernelclean fsclean dvsdkclean
 #########################################################
 # Build all
 
-build:: fsbuild kernelbuild dvsdkbuild
+build:: fsbuild kernelbuild dvsdkbuild ubootbuild
 
 
 #########################################################
@@ -230,7 +252,7 @@ install:
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mFlashing bootloader...\033[0m"	
-	$(V)sudo fs/output/build/uboot-5e86541/tools/uflash/uflash -d $(SDNAME) -u dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin -b addons/bootloader -e 0x82000000 -l 0x82000000 $(OUTPUT)
+	$(V)sudo uboot/tools/uflash/uflash -d $(SDNAME) -u dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin -b uboot/u-boot.bin -e 0x82000000 -l 0x82000000 $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
@@ -247,8 +269,8 @@ install:
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mCopying uImage\033[0m"
-	$(V)cp kernel/arch/arm/boot/uImage images/boot/ $(OUTPUT)
-	$(V)cp addons/uEnv.txt images/boot/ $(OUTPUT)
+	$(V)cp kernel/arch/arm/boot/uImage $(MOUNTPOINT)/boot/ $(OUTPUT)
+	$(V)cp addons/uEnv.txt $(MOUNTPOINT)/boot/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
@@ -257,13 +279,19 @@ install:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
+	$(ECHO) "\033[1mInstalling DVSDK\033[0m"
+	$(V)make --directory=dvsdk cmem_install edma_install irq_install dm365mm_install
+	$(V)cp -r dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
 	$(ECHO) "\033[1mCopying add-ons\033[0m"
-	$(V)cp addons/shadow images/rootfs/etc/ $(OUTPUT)
+	$(V)cp addons/shadow $(MOUNTPOINT)/rootfs/etc/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mCopying admin panel\033[0m"
-	$(V)cp adminka/www/* images/rootfs/var/www/ $(OUTPUT)
+	$(V)cp adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
@@ -271,6 +299,8 @@ install:
 	$(V)sync
 	$(V)umount $(MOUNTPOINT)/boot
 	$(V)umount $(MOUNTPOINT)/rootfs
+	$(V)rmdir $(MOUNTPOINT)/boot
+	$(V)rmdir $(MOUNTPOINT)/rootfs
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
