@@ -13,7 +13,6 @@ OUTPUT=> /dev/null
 #########################################################
 # global SDK settings
 
-#CROSSCOMPILE=/opt/codesourcery/arm-2010q1/bin/arm-none-linux-gnueabi-
 CROSSCOMPILE=$(DEVDIR)/fs/output/host/usr/bin/arm-none-linux-gnueabi-
 SDNAME=/dev/sdd
 
@@ -296,9 +295,9 @@ install:
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mSyncing\033[0m"
-	$(V)sync
-	$(V)umount $(MOUNTPOINT)/boot
-	$(V)umount $(MOUNTPOINT)/rootfs
+	$(V)sudo sync
+	$(V)sudo umount $(MOUNTPOINT)/boot
+	$(V)sudo umount $(MOUNTPOINT)/rootfs
 	$(V)rmdir $(MOUNTPOINT)/boot
 	$(V)rmdir $(MOUNTPOINT)/rootfs
 	$(ECHO) "\033[32m   done\033[0m"
