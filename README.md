@@ -3,7 +3,7 @@
       sudo apt-get install git bash make flex bison gcc g++ gettext texinfo u-boot-tools ncurses-dev
 
 Главный управляющий файл virt2real SDK. Пользоваться им очень легко - достаточно скачать Makefile в какой-нибудь каталог,
-например, /opt/virt2real-sdk
+например, /opt/virt2real-sdk (при установке из-под учётки суперпользователя) или /home/{username}/virt2real-sdk (при установке из-под учётки обычного пользователя).
 
 git clone https://github.com/virt2real/install-sdk.git /opt/virt2real-sdk
 
