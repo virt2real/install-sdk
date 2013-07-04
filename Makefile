@@ -5,6 +5,7 @@
 # global SDK settings
 
 CROSSCOMPILE=/opt/codesourcery/arm-2010q1/bin/arm-none-linux-gnueabi-
+SDNAME=/dev/sdd
 
 #########################################################
 
@@ -12,8 +13,11 @@ export DEVDIR=${shell pwd}
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
 
+MOUNTPOINT=`pwd`/images
+
 V=@
 ECHO=$(V)echo -e
+OUTPUT=> /dev/null
 
 help:
 
@@ -161,5 +165,78 @@ dvsdkinstall:
 	$(ECHO) ""
 	$(V)make --directory=dvsdk cmem_install edma_install irq_install dm365mm_install
 
+#########################################################
+# Installer
 
+install:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mMain installer for Virt2real\033[0m"
+	$(ECHO) ""
+	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
+	$(ECHO) ""
 
+	$(ECHO) "\033[1mCreating the partitions on microSD...\033[0m"
+	$(V)echo -e "1,5,0xC,*\n6,,L" | sfdisk $(SDNAME) -q -D -H255 -S63 $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mFormating boot partition...\033[0m"
+	$(V)sudo mkfs.vfat -F 32 $(SDNAME)1 -n boot $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mFormating rootfs partition...\033[0m"
+	$(V)sudo mkfs.ext3 $(SDNAME)2 -L rootfs $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mFlashing bootloader...\033[0m"	
+	$(V)sudo fs/output/build/uboot-5e86541/tools/uflash/uflash -d $(SDNAME) -u addons/ubl_DM36x_sdmmc.bin -b addons/bootloader -e 0x82000000 -l 0x82000000 $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mMounting boot partition\033[0m"
+	$(V)mkdir -p $(MOUNTPOINT)/boot
+	$(V)sudo mount $(SDNAME)1 $(MOUNTPOINT)/boot
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mMounting rootfs partition\033[0m"
+	$(V)mkdir -p $(MOUNTPOINT)/rootfs
+	$(V)sudo mount $(SDNAME)2 $(MOUNTPOINT)/rootfs
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mCopying uImage\033[0m"
+	$(V)cp kernel/arch/arm/boot/uImage images/boot/ $(OUTPUT)
+	$(V)cp addons/uEnv.txt images/boot/ $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mCopying root filesystem\033[0m"
+	$(V)tar xvf fs/output/images/rootfs.tar -C $(MOUNTPOINT)/rootfs $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mCopying add-ons\033[0m"
+	$(V)cp addons/shadow images/rootfs/etc/ $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mCopying admin panel\033[0m"
+	$(V)cp adminka/www/* images/rootfs/var/www/ $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mSyncing\033[0m"
+	$(V)sync
+	$(V)umount $(MOUNTPOINT)/boot
+	$(V)umount $(MOUNTPOINT)/rootfs
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "   Default user: root"
+	$(ECHO) "   Default password: root"
+	$(ECHO) ""
+
+	$(ECHO) "\033[1mNow you can unmount and eject SD card $(SDNAME)\033[0m"
