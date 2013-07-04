@@ -1,23 +1,23 @@
 #########################################################
 # Copyright (C) 2013 Virt2real (http://www.virt2real.ru)
 
-#########################################################
-# global SDK settings
-
-CROSSCOMPILE=/opt/codesourcery/arm-2010q1/bin/arm-none-linux-gnueabi-
-SDNAME=/dev/sdd
-
-#########################################################
-
 export DEVDIR=${shell pwd}
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
-
 MOUNTPOINT=`pwd`/images
 
 V=@
 ECHO=$(V)echo -e
 OUTPUT=> /dev/null
+
+#########################################################
+# global SDK settings
+
+#CROSSCOMPILE=/opt/codesourcery/arm-2010q1/bin/arm-none-linux-gnueabi-
+CROSSCOMPILE=$(DEVDIR)/fs/output/host/usr/bin/arm-none-linux-gnueabi-
+SDNAME=/dev/sdd
+
+#########################################################
 
 help:
 
@@ -164,6 +164,17 @@ dvsdkinstall:
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=dvsdk cmem_install edma_install irq_install dm365mm_install
+
+#########################################################
+# Clean all
+
+clean:: kernelclean fsclean dvsdkclean
+
+#########################################################
+# Build all
+
+build:: fsbuild kernelbuild dvsdkbuild
+
 
 #########################################################
 # Installer
