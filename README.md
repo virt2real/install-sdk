@@ -1,6 +1,6 @@
 Перед началом работы с SDK требуется установить некоторый софт
 
-      sudo apt-get install git bash make flex bison gcc g++ gettext texinfo u-boot-tools
+      sudo apt-get install git bash make flex bison gcc g++ gettext texinfo u-boot-tools ncurses-devel
 
 Главный управляющий файл virt2real SDK. Пользоваться им очень легко - достаточно скачать Makefile в какой-нибудь каталог,
 например, /opt/virt2real-sdk
