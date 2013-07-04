@@ -26,7 +26,17 @@ help:
 	$(ECHO) ""
 	$(ECHO) "\033[1mtargets available:\033[0m"
 	$(ECHO) ""
-	$(ECHO) "   installsdk		- install full SDK (kernel, DVSDK, Buildroot, CodeSourcery"
+	$(ECHO) "   getsdk		- download full SDK (kernel, DVSDK, Buildroot, adminka)"
+	$(ECHO) "   getkernel		- download kernel"
+	$(ECHO) "   getdvsdk		- download DVSDK"
+	$(ECHO) "   getfs		- download file system"
+	$(ECHO) "   getadminka		- download admin panel"
+	$(ECHO) ""
+	$(ECHO) "   build		- build all"
+	$(ECHO) ""
+	$(ECHO) "   clean		- clean all"
+	$(ECHO) ""
+	$(ECHO) "   install		- install all"
 	$(ECHO) ""
 	$(ECHO) "   kernelconfig		- config kernel"
 	$(ECHO) "   kerneldefconfig	- set default config for kernel"
@@ -50,16 +60,31 @@ help:
 #########################################################
 # Common SDK
 
-installsdk:
-	$(ECHO) ""
-	$(ECHO) "\033[1;34mDownload and set up Virt2real SDK\033[0m"
-	$(ECHO) ""
-	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
-	$(ECHO) ""
+getsdk:: getkernel getdvsdk getfs get adminka
 
+getkernel:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mDownload Virt2real kernel\033[0m"
+	$(ECHO) ""
 	$(V)git clone https://github.com/virt2real/linux-davinci kernel
+
+getdvsdk:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mDownload Virt2real DVSDK\033[0m"
+	$(ECHO) ""
 	$(V)git clone https://github.com/virt2real/DVSDK.git dvsdk
+	
+
+getfs:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mDownload Virt2real file system\033[0m"
+	$(ECHO) ""
 	$(V)git clone https://github.com/virt2real/dm36x-buildroot.git fs
+	
+getadminka:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mDownload Virt2real admin panel\033[0m"
+	$(ECHO) ""
 	$(V)git clone https://github.com/virt2real/admin_panel.git adminka
 
 ###########################################################
