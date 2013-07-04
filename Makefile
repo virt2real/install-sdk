@@ -31,6 +31,8 @@ help:
 	$(ECHO) "   getfs		- download file system"
 	$(ECHO) "   getadminka		- download admin panel"
 	$(ECHO) ""
+	$(ECHO) "   defconfig		- default config all"
+	$(ECHO) ""
 	$(ECHO) "   build		- build all"
 	$(ECHO) ""
 	$(ECHO) "   clean		- clean all"
@@ -146,6 +148,14 @@ kernelmodulesbuild:
 #########################################################
 # filesystem (Buildroot)
 
+fsdefconfig:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mLinux Filesystem default config for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
+	$(ECHO) ""
+	$(V)make --directory=fs virt2real_v1mass_defconfig
+
 fsconfig:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mLinux Filesystem Config for Virt2real SDK\033[0m"
@@ -208,7 +218,20 @@ ubootbuild:
 	$(ECHO) ""
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) distclean
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
-	$(V)make --directory=uboot CROSS_COMPILE=$(CROSSCOMPILE) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
+
+ubootdefconfig:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mU-Boot default config for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
+	$(ECHO) ""
+        $(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
+
+#########################################################
+# defconfig all
+
+defconfig:: kerneldefconfig fsdefconfig ubootdefconfig
 
 
 #########################################################
