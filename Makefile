@@ -60,7 +60,7 @@ help:
 #########################################################
 # Common SDK
 
-getsdk:: getkernel getdvsdk getfs getadminka
+getsdk:: getkernel getdvsdk getfs getadminka getuboot
 
 getkernel:
 	$(ECHO) ""
