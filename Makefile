@@ -285,7 +285,7 @@ install_bootloader:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-mount_partiotions:
+mount_partitions:
 	$(ECHO) "\033[1mMounting boot partition\033[0m"
 	$(V)sudo mkdir -p $(MOUNTPOINT)/boot
 	$(V)sudo mount $(SDNAME)1 $(MOUNTPOINT)/boot
@@ -345,7 +345,7 @@ sync_partitions:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-install:: install_intro prepare_partitions install_bootloader mount_partiotions install_kernel_fs install_dvsdk install_modules install_addons install_adminka sync_partitions
+install:: install_intro prepare_partitions install_bootloader mount_partitions install_kernel_fs install_dvsdk install_modules install_addons install_adminka sync_partitions
 
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
