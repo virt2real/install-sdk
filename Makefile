@@ -15,6 +15,7 @@ OUTPUT=> /dev/null
 
 CROSSCOMPILE=$(DEVDIR)/fs/output/host/usr/bin/arm-none-linux-gnueabi-
 SDNAME=/dev/sdd
+KERNEL_NAME=3.9.0-rc6-virt2real+
 
 #########################################################
 
@@ -242,13 +243,16 @@ clean:: kernelclean fsclean dvsdkclean
 #########################################################
 # Build all
 
-build:: fsbuild kernelbuild dvsdkbuild ubootbuild
+build:: fsbuild kernelbuild kernelmodulesbuild dvsdkbuild ubootbuild
 
 
 #########################################################
 # Installer
 
-install:
+#########################################################
+# Instal kernel
+
+install_intro:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mMain installer for Virt2real\033[0m"
 	$(ECHO) ""
@@ -258,8 +262,10 @@ install:
 	$(ECHO) "\033[31mWARNING!!! Device $(SDNAME) will be erased! \033[0m"
 	$(ECHO) ""
 
+
+prepare_partitions:
 	$(ECHO) "\033[1mCreating the partitions on microSD...\033[0m"
-	$(V)echo -e "1,5,0xC,*\n6,,L" | sfdisk $(SDNAME) -q -D -H255 -S63 $(OUTPUT)
+	$(V)echo -e "1,5,0xC,*\n6,,L" | sudo sfdisk $(SDNAME) -q -D -H255 -S63 $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
@@ -272,12 +278,14 @@ install:
 	$(V)sudo mkfs.ext3 $(SDNAME)2 -L rootfs $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+install_bootloader:
 	$(ECHO) "\033[1mFlashing bootloader...\033[0m"	
 	$(V)sudo uboot/tools/uflash/uflash -d $(SDNAME) -u dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin -b uboot/u-boot.bin -e 0x82000000 -l 0x82000000 $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+mount_partiotions:
 	$(ECHO) "\033[1mMounting boot partition\033[0m"
 	$(V)mkdir -p $(MOUNTPOINT)/boot
 	$(V)sudo mount $(SDNAME)1 $(MOUNTPOINT)/boot
@@ -289,10 +297,11 @@ install:
 	$(V)sudo mount $(SDNAME)2 $(MOUNTPOINT)/rootfs
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+install_kernel_fs:
 	$(ECHO) "\033[1mCopying uImage\033[0m"
-	$(V)cp kernel/arch/arm/boot/uImage $(MOUNTPOINT)/boot/ $(OUTPUT)
-	$(V)cp addons/uEnv.txt $(MOUNTPOINT)/boot/ $(OUTPUT)
+	$(V)sudo cp kernel/arch/arm/boot/uImage $(MOUNTPOINT)/boot/ $(OUTPUT)
+	$(V)sudo cp addons/uEnv.txt $(MOUNTPOINT)/boot/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
@@ -300,32 +309,44 @@ install:
 	$(V)tar xvf fs/output/images/rootfs.tar -C $(MOUNTPOINT)/rootfs $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+install_dvsdk:
 	$(ECHO) "\033[1mInstalling DVSDK\033[0m"
-	$(V)make --directory=dvsdk cmem_install edma_install irq_install dm365mm_install
-	$(V)cp -r dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/
+	$(V)make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
+	$(V)sudo cp -r dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+install_modules:
+	$(ECHO) "\033[1mInstalling kernel modules\033[0m"
+	$(V)make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(MOUNTPOINT)/rootfs $(OUTPUT)
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
+install_addons:
 	$(ECHO) "\033[1mCopying add-ons\033[0m"
-	$(V)cp addons/shadow $(MOUNTPOINT)/rootfs/etc/ $(OUTPUT)
+	$(V)sudo cp addons/shadow $(MOUNTPOINT)/rootfs/etc/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+install_adminka:
 	$(ECHO) "\033[1mCopying admin panel\033[0m"
-	$(V)cp adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
+	$(V)sudo cp adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+sync_partitions:
 	$(ECHO) "\033[1mSyncing\033[0m"
-	$(V)sudo sync
+	$(V)sudo sync  $(OUTPUT)
 	$(V)sudo umount $(MOUNTPOINT)/boot
 	$(V)sudo umount $(MOUNTPOINT)/rootfs
 	$(V)rmdir $(MOUNTPOINT)/boot
 	$(V)rmdir $(MOUNTPOINT)/rootfs
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
+install:: install_intro prepare_partitions install_bootloader mount_partiotions install_kernel_fs install_dvsdk install_modules install_addons install_adminka sync_partitions
+
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
 	$(ECHO) ""
