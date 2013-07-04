@@ -174,6 +174,9 @@ install:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
+	
+	$(ECHO) "\033[31mWARNING!!! Device $(SDNAME) will be erased! \033[0m"
+	$(ECHO) ""
 
 	$(ECHO) "\033[1mCreating the partitions on microSD...\033[0m"
 	$(V)echo -e "1,5,0xC,*\n6,,L" | sfdisk $(SDNAME) -q -D -H255 -S63 $(OUTPUT)
@@ -191,7 +194,7 @@ install:
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mFlashing bootloader...\033[0m"	
-	$(V)sudo fs/output/build/uboot-5e86541/tools/uflash/uflash -d $(SDNAME) -u addons/ubl_DM36x_sdmmc.bin -b addons/bootloader -e 0x82000000 -l 0x82000000 $(OUTPUT)
+	$(V)sudo fs/output/build/uboot-5e86541/tools/uflash/uflash -d $(SDNAME) -u dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin -b addons/bootloader -e 0x82000000 -l 0x82000000 $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
