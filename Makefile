@@ -206,7 +206,7 @@ dvsdkinstall:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=dvsdk cmem_install edma_install irq_install dm365mm_install
+	$(V)make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install
 
 #########################################################
 # U-Boot
