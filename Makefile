@@ -287,13 +287,13 @@ install_bootloader:
 
 mount_partiotions:
 	$(ECHO) "\033[1mMounting boot partition\033[0m"
-	$(V)mkdir -p $(MOUNTPOINT)/boot
+	$(V)sudo mkdir -p $(MOUNTPOINT)/boot
 	$(V)sudo mount $(SDNAME)1 $(MOUNTPOINT)/boot
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mMounting rootfs partition\033[0m"
-	$(V)mkdir -p $(MOUNTPOINT)/rootfs
+	$(V)sudo mkdir -p $(MOUNTPOINT)/rootfs
 	$(V)sudo mount $(SDNAME)2 $(MOUNTPOINT)/rootfs
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
@@ -306,20 +306,20 @@ install_kernel_fs:
 	$(ECHO) ""
 	
 	$(ECHO) "\033[1mCopying root filesystem\033[0m"
-	$(V)tar xvf fs/output/images/rootfs.tar -C $(MOUNTPOINT)/rootfs $(OUTPUT)
+	$(V)sudo tar xvf fs/output/images/rootfs.tar -C $(MOUNTPOINT)/rootfs $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
 install_dvsdk:
 	$(ECHO) "\033[1mInstalling DVSDK\033[0m"
-	$(V)make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
+	$(V)sudo make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
 	$(V)sudo cp -r dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
 install_modules:
 	$(ECHO) "\033[1mInstalling kernel modules\033[0m"
-	$(V)make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(MOUNTPOINT)/rootfs $(OUTPUT)
+	$(V)sudo make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(MOUNTPOINT)/rootfs $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -340,8 +340,8 @@ sync_partitions:
 	$(V)sudo sync  $(OUTPUT)
 	$(V)sudo umount $(MOUNTPOINT)/boot
 	$(V)sudo umount $(MOUNTPOINT)/rootfs
-	$(V)rmdir $(MOUNTPOINT)/boot
-	$(V)rmdir $(MOUNTPOINT)/rootfs
+	$(V)sudo rmdir $(MOUNTPOINT)/boot
+	$(V)sudo rmdir $(MOUNTPOINT)/rootfs
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
