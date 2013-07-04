@@ -7,6 +7,13 @@ git clone https://github.com/virt2real/install-sdk.git /opt/virt2real-sdk
 
 cd /opt/virt2real-sdk
 
+В Убунте симлинк /bin/sh по-дефолту ссылается на /bin/dash, для корректной работы хорошо бы переделать на bash. 
+Делается это следующими командами
+        
+    rm /bin/sh
+    ln -s /bin/bash /bin/sh
+    
+
 После этого можно приступать к работе с SDK. Сначала надобно скачать все компоненты SDK, это делается командой
 
 make installsdk
@@ -20,7 +27,7 @@ make installsdk
         покажет хелп (список параметров)
 
     
-    make installsdk
+    make getsdk
         самая первая команда, скачивает все необходимые компоненты SDK
 
 
@@ -28,5 +35,14 @@ make installsdk
         конфигурирование ядра
     
     
-    
+    make build
+        соберёт все компоненты
+        
+    make install
+        установит все компоненты на карточку
+        
+    make clean
+        очистит всё что было собрано
+        
+        
 
