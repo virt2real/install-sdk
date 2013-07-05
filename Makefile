@@ -4,7 +4,7 @@
 export DEVDIR=${shell pwd}
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
-MOUNTPOINT=`pwd`/images
+MOUNTPOINT=${shell pwd}/images
 
 V=@
 ECHO=$(V)echo -e
@@ -155,7 +155,7 @@ fsdefconfig:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=fs virt2real_v1mass_defconfig
+	$(V)make --directory=fs ARCH=arm virt2real_v1mass_defconfig
 
 fsconfig:
 	$(ECHO) ""
@@ -163,7 +163,7 @@ fsconfig:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=fs menuconfig
+	$(V)make --directory=fs ARCH=arm menuconfig
 
 fsclean:
 	$(ECHO) ""
@@ -171,7 +171,7 @@ fsclean:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=fs clean
+	$(V)make --directory=fs ARCH=arm clean
 
 fsbuild:
 	$(ECHO) ""
@@ -179,7 +179,7 @@ fsbuild:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=fs
+	$(V)make --directory=fs ARCH=arm
 
 #########################################################
 # DVSDK
@@ -310,10 +310,10 @@ install_kernel_fs:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-install_dvsdk:
-	$(ECHO) "\033[1mInstalling DVSDK\033[0m"
+install_dsp:
+	$(ECHO) "\033[1mInstalling DSP modules\033[0m"
 	$(V)sudo make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
-	$(V)sudo cp -r dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/ $(OUTPUT)
+	$(V)sudo cp -r $(DEVDIR)/dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/  $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -325,7 +325,6 @@ install_modules:
 
 install_addons:
 	$(ECHO) "\033[1mCopying add-ons\033[0m"
-	$(V)sudo cp addons/shadow $(MOUNTPOINT)/rootfs/etc/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -345,7 +344,7 @@ sync_partitions:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-install:: install_intro prepare_partitions install_bootloader mount_partitions install_kernel_fs install_dvsdk install_modules install_addons install_adminka sync_partitions
+install:: install_intro prepare_partitions install_bootloader mount_partitions install_kernel_fs  install_modules install_dsp install_addons install_adminka sync_partitions
 
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
