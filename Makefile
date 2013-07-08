@@ -13,8 +13,8 @@ OUTPUT=> /dev/null
 #########################################################
 # global SDK settings
 
-#CROSSCOMPILE=$(DEVDIR)/fs/output/host/usr/bin/arm-none-linux-gnueabi-
-CROSSCOMPILE=$(DEVDIR)/codesourcery/arm-2012.03/bin/arm-none-linux-gnueabi-
+CSPATH=$(DEVDIR)/codesourcery/arm-2012.03
+CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
 SDNAME=/dev/sdd
 KERNEL_NAME=3.9.0-rc6-virt2real+
 
@@ -187,7 +187,7 @@ fsbuild:
 	$(ECHO) ""
 	$(ECHO) "Board : \033[32m$(DEVICE)\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=fs ARCH=arm
+	$(V)make --directory=fs ARCH=arm CSPATH=$(CSPATH)
 
 #########################################################
 # DVSDK
