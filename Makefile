@@ -62,7 +62,7 @@ help:
 #########################################################
 # Common SDK
 
-getsdk:: getkernel getdvsdk getfs getadminka getuboot
+getsdk:: getcodesourcery getkernel getdvsdk getfs getadminka getuboot
 
 getkernel:
 	$(ECHO) ""
@@ -95,6 +95,13 @@ getuboot:
 	$(ECHO) ""
 	$(V)git clone https://github.com/virt2real/v2r_uboot.git uboot
 	
+getcodesourcery:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mGet CodeSourcery for Virt2real\033[0m"
+	$(ECHO) ""
+	
+	$(V)wget -P codesourcery http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+	$(V)tar xvjf codesourcery/* -C codesourcery
 
 
 ###########################################################
@@ -244,6 +251,7 @@ clean:: kernelclean fsclean dvsdkclean
 # Build all
 
 build:: fsbuild kernelbuild kernelmodulesbuild dvsdkbuild ubootbuild
+
 
 
 #########################################################
