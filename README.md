@@ -5,22 +5,22 @@
 Главный управляющий файл virt2real SDK. Пользоваться им очень легко - достаточно скачать Makefile в какой-нибудь каталог,
 например, /opt/virt2real-sdk (при установке из-под учётки суперпользователя) или /home/{username}/virt2real-sdk (при установке из-под учётки обычного пользователя).
 
-git clone https://github.com/virt2real/install-sdk.git /opt/virt2real-sdk
+      git clone https://github.com/virt2real/install-sdk.git /opt/virt2real-sdk
 
 Далее надо перейти в этот каталог
 
-cd /opt/virt2real-sdk
+      cd /opt/virt2real-sdk
 
 В Убунте симлинк /bin/sh по-дефолту ссылается на /bin/dash, для корректной работы хорошо бы переделать на bash. 
 Делается это следующими командами
-        
-    rm /bin/sh
-    ln -s /bin/bash /bin/sh
+
+      rm /bin/sh
+      ln -s /bin/bash /bin/sh
     
 
 После этого можно приступать к работе с SDK. Сначала надобно скачать все компоненты SDK, это делается командой
 
-make getsdk
+      make getsdk
 
 Довольно долго будет скачиваться, имейте терпение. После того как всё скачалось, можно конфигурировать и далее в том же духе...
 
