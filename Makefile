@@ -13,7 +13,8 @@ OUTPUT=> /dev/null
 #########################################################
 # global SDK settings
 
-CROSSCOMPILE=$(DEVDIR)/fs/output/host/usr/bin/arm-none-linux-gnueabi-
+#CROSSCOMPILE=$(DEVDIR)/fs/output/host/usr/bin/arm-none-linux-gnueabi-
+CROSSCOMPILE=$(DEVDIR)/codesourcery/arm-2012.03/bin/arm-none-linux-gnueabi-
 SDNAME=/dev/sdd
 KERNEL_NAME=3.9.0-rc6-virt2real+
 
@@ -97,7 +98,7 @@ getuboot:
 	
 getcodesourcery:
 	$(ECHO) ""
-	$(ECHO) "\033[1;34mGet CodeSourcery for Virt2real\033[0m"
+	$(ECHO) "\033[1;34mDownload CodeSourcery for Virt2real\033[0m"
 	$(ECHO) ""
 	
 	$(V)wget -P codesourcery http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
