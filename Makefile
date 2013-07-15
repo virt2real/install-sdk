@@ -82,7 +82,7 @@ getfs:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDownload Virt2real file system\033[0m"
 	$(ECHO) ""
-	$(V)git clone https://github.com/virt2real/dm36x-buildroot.git fs
+	$(V)git clone https://github.com/virt2real/v2r_buildroot.git fs
 	
 getadminka:
 	$(ECHO) ""
