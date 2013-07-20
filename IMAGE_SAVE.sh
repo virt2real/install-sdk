@@ -1,3 +1,3 @@
 #!/bin/sh
 
-make make_image
+make save_image

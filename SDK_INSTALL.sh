@@ -1,5 +1,4 @@
 #!/bin/sh
 
-sudo apt-get install git bash make flex bison gcc g++ gettext texinfo u-boot-tools ncurses-dev
-make getsdk
-
+sudo apt-get install git bash make flex bison gcc g++ gettext texinfo u-boot-tools ncurses-dev mercurial subversion > /dev/null
+make getsdk defconfig
