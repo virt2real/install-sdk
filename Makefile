@@ -3,7 +3,7 @@
 #
 
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdc
+SDNAME=/dev/sdX
 
 
 export DEVDIR=${shell pwd}
@@ -11,7 +11,7 @@ export PLATFORM=dm365
 export DEVICE=dm365-virt2real
 MOUNTPOINT=${shell pwd}/images
 DOWNLOADDIR=download
-WGET=wget -nv
+WGET=wget
 
 ifndef VERBOSE
     V=@
