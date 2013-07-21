@@ -3,7 +3,7 @@
 #
 
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdX
+SDNAME=/dev/sdc
 
 
 export DEVDIR=${shell pwd}
@@ -32,7 +32,7 @@ OK=0
 CSPATH=$(DEVDIR)/codesourcery/arm-2012.03
 CSFILE=arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
 CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
-KERNEL_NAME=3.9.0-rc6-virt2real+
+export KERNEL_NAME=3.9.0-rc6-virt2real+
 
 #########################################################
 
@@ -359,6 +359,13 @@ install_dsp:
 	$(ECHO) "\033[1mInstalling DSP modules\033[0m"
 	$(V)sudo make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
 	$(V)sudo cp -r $(DEVDIR)/dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/  $(OUTPUT)
+
+	# Add DSP modules to modules.dep
+	sudo echo "kernel/drivers/dsp/cmemk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	sudo echo "kernel/drivers/dsp/dm365mmap.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	sudo echo "kernel/drivers/dsp/irqk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	sudo echo "kernel/drivers/dsp/edmak.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
