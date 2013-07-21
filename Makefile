@@ -428,15 +428,7 @@ maketarball:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-write_tarball:: check_file install_intro umount_partitions prepare_partitions install_bootloader mount_partitions
-
-	$(ECHO) "Writing boot and rootfs tarball"
-	$(V)tar xvf $(FILENAME) -C $(MOUNTPOINT) $(OUTPUT)
-	$(ECHO) ""
-	$(ECHO) "\033[32m   done\033[0m"
-	$(ECHO) ""
-
-	sync_partitions umount_partitions
+write_tarball:: check_file install_intro umount_partitions prepare_partitions install_bootloader mount_partitions writetarball sync_partitions umount_partitions
 
 check_file:
 	$(V)if [ ! -f $(FILENAME) ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mFile $(FILENAME) not found, aborting\033[0m"; $(M_ECHO) ""; exit 1; fi
