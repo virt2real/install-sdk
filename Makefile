@@ -6,6 +6,7 @@
 SDNAME=/dev/sdc
 
 
+
 export DEVDIR=${shell pwd}
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
@@ -26,12 +27,19 @@ DATE=${shell date "+%d%m%y-%H%M%S"}
 date=$(DATE)
 OK=0
 
+BOOTDIR:=${shell mount | grep $(SDNAME)1 | awk 'BEGIN { } { print $$3 }'}
+ROOTFSDIR:=${shell mount | grep $(SDNAME)2 | awk 'BEGIN { } { print $$3 }'}
+
 #########################################################
 # global SDK settings
 
-CSPATH=$(DEVDIR)/codesourcery/arm-2012.03
-CSFILE=arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+CSPATH=$(DEVDIR)/codesourcery/arm-2013.05
+CSPATH2=$(DEVDIR)/codesourcery/arm-2012.03
+CSFILE=arm-2013.05-24-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+CSFILE2=arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+
 CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
+CROSSCOMPILE2=$(CSPATH2)/bin/arm-none-linux-gnueabi-
 export KERNEL_NAME=3.9.0-rc6-virt2real+
 
 #########################################################
@@ -146,7 +154,7 @@ getuboot:
 	fi
 
 getcodesourcery:
-	$(V)if [ -d codesourcery ] ; \
+	$(V)if [ -d $(CSPATH) ] ; \
 	then \
 		$(M_ECHO) ""; \
 		$(M_ECHO) "\033[32mCodeSourcery found, skipping\033[0m" ; \
@@ -159,11 +167,33 @@ getcodesourcery:
 		$(WGET) -P $(DOWNLOADDIR) http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/$(CSFILE) ; \
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[32m   done\033[0m" ; \
-		mkdir codesourcery ; \
+		mkdir codesourcery $(OUTPUT); \
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mUnpacking CodeSourcery\033[0m" ;\
 		$(M_ECHO) "" ; \
 		tar xvf $(DOWNLOADDIR)/$(CSFILE) -C codesourcery $(OUTPUT) ; \
+		$(M_ECHO) "\033[32m   done\033[0m" ; \
+		$(M_ECHO) "" ; \
+	fi
+
+	$(V)if [ -d $(CSPATH2) ] ; \
+	then \
+		$(M_ECHO) ""; \
+		$(M_ECHO) "\033[32mCodeSourcery found, skipping\033[0m" ; \
+		$(M_ECHO) ""; \
+	else \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mDownload CodeSourcery\033[0m" ;\
+		$(M_ECHO) "" ;\
+		if [ -f $(DOWNLOADDIR)/$(CSFILE2) ] ; then rm $(DOWNLOADDIR)/$(CSFILE2) $(OUTPUT); fi ; \
+		$(WGET) -P $(DOWNLOADDIR) http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/$(CSFILE2) ; \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[32m   done\033[0m" ; \
+		mkdir codesourcery $(OUTPUT); \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mUnpacking CodeSourcery\033[0m" ;\
+		$(M_ECHO) "" ; \
+		tar xvf $(DOWNLOADDIR)/$(CSFILE2) -C codesourcery $(OUTPUT) ; \
 		$(M_ECHO) "\033[32m   done\033[0m" ; \
 		$(M_ECHO) "" ; \
 	fi
@@ -263,15 +293,15 @@ ubootbuild:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot build for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) distclean
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) distclean
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
 
 ubootdefconfig:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot default config for Virt2real SDK\033[0m"
 	$(ECHO) ""
-        $(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
+        $(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
 
 #########################################################
 # defconfig all
@@ -295,6 +325,12 @@ build:: fsbuild kernelbuild kernelmodulesbuild dvsdkbuild ubootbuild
 # Installer
 
 install_intro:
+	$(ECHO) ""
+
+	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+
+
 	$(V)if [ ! "$(OK)" = "1" ] ; then \
 	$(M_ECHO) "" ; \
 	$(M_ECHO) "\033[1;34mMain installer for Virt2real\033[0m" ; \
@@ -311,6 +347,10 @@ install_intro:
 
 prepare_partitions:: install_intro
 	$(ECHO) ""
+
+	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m"; exit 1 ; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; fi
 	$(ECHO) ""
 	$(ECHO) "\033[1mCreating the partitions on microSD...\033[0m"
@@ -329,6 +369,12 @@ prepare_partitions:: install_intro
 	$(ECHO) ""
 
 install_bootloader:: install_intro getuboot getdvsdk
+	$(ECHO) ""
+
+	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+
+
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; exit 1; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; $(M_ECHO) "";  fi
 	$(V)if [ ! -f uboot/tools/uflash/uflash ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getuboot to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
 	$(V)if [ ! -f dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getdvsdk to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
@@ -361,10 +407,10 @@ install_dsp:
 	$(V)sudo cp -r $(DEVDIR)/dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/  $(OUTPUT)
 
 	# Add DSP modules to modules.dep
-	sudo echo "kernel/drivers/dsp/cmemk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	sudo echo "kernel/drivers/dsp/dm365mmap.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	sudo echo "kernel/drivers/dsp/irqk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	sudo echo "kernel/drivers/dsp/edmak.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)sudo echo "kernel/drivers/dsp/cmemk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)sudo echo "kernel/drivers/dsp/dm365mmap.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)sudo echo "kernel/drivers/dsp/irqk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)sudo echo "kernel/drivers/dsp/edmak.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
 
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
@@ -382,7 +428,7 @@ install_addons:
 
 install_adminka:
 	$(ECHO) "\033[1mCopying admin panel\033[0m"
-	$(V)sudo cp adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
+	$(V)sudo cp -r adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -399,14 +445,23 @@ install:: install_intro umount_partitions prepare_partitions install_bootloader 
 
 mount_partitions:
 	$(ECHO) ""
+
+	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; $(M_ECHO) ""; exit 1; fi
 	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
 	$(V)if [ ! -d $(MOUNTPOINT)/rootfs ] ; then $(M_ECHO) "\033[1mMounting rootfs partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/rootfs; sudo mount $(SDNAME)2 $(MOUNTPOINT)/rootfs; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
 
 umount_partitions:
+
 	$(ECHO) ""
-	$(V)if [ -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mUmounting boot partition\033[0m"; umount $(MOUNTPOINT)/boot;  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(MOUNTPOINT)/boot; fi
-	$(V)if [ -d $(MOUNTPOINT)/rootfs ] ; then $(M_ECHO) "\033[1mUmounting rootfs partition\033[0m"; umount $(MOUNTPOINT)/rootfs;  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(MOUNTPOINT)/rootfs; fi
+
+	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+
+	$(V)if [ $(BOOTDIR) ] ; then if [ -d $(BOOTDIR) ] ; then $(M_ECHO) "\033[1mUmounting boot partition\033[0m"; umount $(BOOTDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(BOOTDIR); fi ; fi
+	$(V)if [ $(ROOTFSDIR) ] ; then if [ -d $(ROOTFSDIR) ] ; then $(M_ECHO) "\033[1mUmounting rootfs partition\033[0m"; umount $(ROOTFSDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(ROOTFSDIR); fi ; fi
 
 sync_partitions:
 	$(ECHO) ""
@@ -428,7 +483,15 @@ maketarball:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-write_tarball:: check_file install_intro umount_partitions prepare_partitions install_bootloader mount_partitions writetarball sync_partitions umount_partitions
+write_tarball:: check_file install_intro umount_partitions prepare_partitions install_bootloader mount_partitions
+
+	$(ECHO) "Writing boot and rootfs tarball"
+	$(V)tar xvf $(FILENAME) -C $(MOUNTPOINT) $(OUTPUT)
+	$(ECHO) ""
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
+	sync_partitions umount_partitions
 
 check_file:
 	$(V)if [ ! -f $(FILENAME) ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mFile $(FILENAME) not found, aborting\033[0m"; $(M_ECHO) ""; exit 1; fi
