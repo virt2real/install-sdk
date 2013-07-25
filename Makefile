@@ -3,7 +3,7 @@
 #
 
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdc
+SDNAME=/dev/sdX
 
 
 
