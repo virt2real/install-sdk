@@ -1,5 +1,7 @@
 SDK - Software Development Kit - комплект средств разработки.
+
 SDK Virt2real - комплект средств разработки под платформу Virt2real.
+
 DVSDK - Digital Video Software Development Kit - SDK видеоподсистемы для процессоров фирмы Texas Instruments
 
 SDK Virt2real состоит из нескольких компонентов:
