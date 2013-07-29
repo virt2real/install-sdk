@@ -406,7 +406,6 @@ install_dsp:
 	$(V)sudo make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
 	$(V)sudo cp -r $(DEVDIR)/dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/  $(OUTPUT)
 
-	# Add DSP modules to modules.dep
 	$(V)sudo echo "kernel/drivers/dsp/cmemk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
 	$(V)sudo echo "kernel/drivers/dsp/dm365mmap.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
 	$(V)sudo echo "kernel/drivers/dsp/irqk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
