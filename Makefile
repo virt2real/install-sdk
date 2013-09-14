@@ -3,7 +3,7 @@
 #
 
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdX
+SDNAME=/dev/sdc
 
 
 
@@ -301,7 +301,7 @@ ubootdefconfig:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot default config for Virt2real SDK\033[0m"
 	$(ECHO) ""
-        $(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
 
 #########################################################
 # defconfig all
