@@ -358,6 +358,8 @@ prepare_partitions:: install_intro
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
+	sleep 5
+
 	$(ECHO) "\033[1mFormating boot partition...\033[0m"
 	$(V)sudo mkfs.vfat -F 32 $(SDNAME)1 -n boot $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
@@ -403,13 +405,13 @@ install_kernel_fs:
 
 install_dsp:
 	$(ECHO) "\033[1mInstalling DSP modules\033[0m"
-	$(V)sudo make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
+	$(V)sudo DEVDIR=$(DEVDIR) make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
 	$(V)sudo cp -r $(DEVDIR)/dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/  $(OUTPUT)
 
-	$(V)sudo echo "kernel/drivers/dsp/cmemk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)sudo echo "kernel/drivers/dsp/dm365mmap.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)sudo echo "kernel/drivers/dsp/irqk.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)sudo echo "kernel/drivers/dsp/edmak.ko:" >> $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/cmemk.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/dm365mmap.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/irqk.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/edmak.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
 
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
