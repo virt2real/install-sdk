@@ -272,19 +272,20 @@ dvsdkbuild:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK build for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=dvsdk CSTOOL_PREFIX=$(CROSSCOMPILE) LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel  cmem edma irq dm365mm
+	$(V)make --directory=dvsdk CSTOOL_PREFIX=$(CROSSCOMPILE) LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel  cmem edma irq dm365mm dmai
 
 dvsdkclean:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=dvsdk cmem_clean edma_clean irq_clean dm365mm_clean
+	$(V)make --directory=dvsdk cmem_clean edma_clean irq_clean dm365mm_clean dmai_clean
 
 dvsdkinstall:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK install for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install
+
 
 #########################################################
 # U-Boot
