@@ -3,8 +3,11 @@
 #
 
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdX
+SDNAME=/dev/sdx
 
+# if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
+# else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
+PARTITIONPREFIX=
 
 
 export DEVDIR=${shell pwd}
@@ -27,8 +30,8 @@ DATE=${shell date "+%d%m%y-%H%M%S"}
 date=$(DATE)
 OK=0
 
-BOOTDIR:=${shell mount | grep $(SDNAME)1 | awk 'BEGIN { } { print $$3 }'}
-ROOTFSDIR:=${shell mount | grep $(SDNAME)2 | awk 'BEGIN { } { print $$3 }'}
+BOOTDIR:=${shell mount | grep $(SDNAME)$(PARTITIONPREFIX)1 | awk 'BEGIN { } { print $$3 }'}
+ROOTFSDIR:=${shell mount | grep $(SDNAME)$(PARTITIONPREFIX)2 | awk 'BEGIN { } { print $$3 }'}
 
 #########################################################
 # global SDK settings
@@ -362,12 +365,12 @@ prepare_partitions:: install_intro
 	sleep 5
 
 	$(ECHO) "\033[1mFormating boot partition...\033[0m"
-	$(V)sudo mkfs.vfat -F 32 $(SDNAME)1 -n boot $(OUTPUT)
+	$(V)sudo mkfs.vfat -F 32 $(SDNAME)$(PARTITIONPREFIX)1 -n boot $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
 	$(ECHO) "\033[1mFormating rootfs partition...\033[0m"
-	$(V)sudo mkfs.ext3 $(SDNAME)2 -L rootfs $(OUTPUT)
+	$(V)sudo mkfs.ext3 $(SDNAME)$(PARTITIONPREFIX)2 -L rootfs $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -452,8 +455,8 @@ mount_partitions:
 	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
-	$(V)if [ ! -d $(MOUNTPOINT)/rootfs ] ; then $(M_ECHO) "\033[1mMounting rootfs partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/rootfs; sudo mount $(SDNAME)2 $(MOUNTPOINT)/rootfs; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
+	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)$(PARTITIONPREFIX)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
+	$(V)if [ ! -d $(MOUNTPOINT)/rootfs ] ; then $(M_ECHO) "\033[1mMounting rootfs partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/rootfs; sudo mount $(SDNAME)$(PARTITIONPREFIX)2 $(MOUNTPOINT)/rootfs; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
 
 umount_partitions:
 
