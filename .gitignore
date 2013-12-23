@@ -5,3 +5,4 @@ dvsdk/
 fs/
 kernel/
 uboot/
+kernel-headers/

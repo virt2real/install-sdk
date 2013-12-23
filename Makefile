@@ -241,6 +241,12 @@ kernelmodulesbuild:
 	$(V)make --directory=kernel ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) modules
 
 
+kernelheaders:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mLinux Kernel Headers install for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)make --directory=kernel ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) INSTALL_HDR_PATH=$(shell pwd)/kernel-headers headers_install 
+
 #########################################################
 # filesystem (Buildroot)
 
