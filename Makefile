@@ -327,7 +327,7 @@ clean:: kernelclean fsclean dvsdkclean
 #########################################################
 # Build all
 
-build:: fsbuild kernelbuild kernelmodulesbuild dvsdkbuild ubootbuild
+build:: ubootbuild kernelbuild kernelmodulesbuild dvsdkbuild fsbuild
 
 
 
