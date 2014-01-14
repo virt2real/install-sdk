@@ -3,7 +3,7 @@
 #
 
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdx
+SDNAME=/dev/sdc
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
@@ -298,18 +298,21 @@ dvsdkbuild:
 	$(ECHO) "\033[1;34mDVSDK build for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=dvsdk CSTOOL_PREFIX=$(CROSSCOMPILE) LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel  cmem edma irq dm365mm dmai
+	$(ECHO) "\n\033[1mDVSDK build  done\033[0m"
 
 dvsdkclean:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=dvsdk cmem_clean edma_clean irq_clean dm365mm_clean dmai_clean
+	$(ECHO) "\n\033[1mDVSDK clean  done\033[0m"
 
 dvsdkinstall:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK install for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install
+	$(ECHO) "\n\033[1mDVSDK install  done\033[0m"
 
 dvsdkupdate:
 	$(ECHO) ""
@@ -330,12 +333,19 @@ ubootbuild:
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) distclean
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
+	$(ECHO) "\n\033[1mU-Boot build  done\033[0m"
 
 ubootdefconfig:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot default config for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
+
+ubootclean:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mU-Boot clean for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)make --directory=uboot ARCH=arm clean
 
 ubootupdate:
 	$(ECHO) ""
@@ -367,7 +377,7 @@ defconfig:: kerneldefconfig fsdefconfig ubootdefconfig
 #########################################################
 # Clean all
 
-clean:: kernelclean fsclean dvsdkclean
+clean:: kernelclean fsclean dvsdkclean ubootclean
 
 #########################################################
 # Build all
