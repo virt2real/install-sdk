@@ -6,7 +6,7 @@ SDDEFNAME=/dev/sdX
 
 #SD card device name, CHANGE THIS!!!
 #for example, SDNAME=/dev/sdc
-SDNAME=/dev/sdc
+SDNAME=$(SDDEFNAME)
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
