@@ -1,9 +1,11 @@
 #########################################################
-# Copyright (C) 2013 Virt2real (http://www.virt2real.ru)
+# Copyright (C) 2014 Virt2real (http://www.virt2real.ru)
 #
 #SD card default name, DONT CHANGE THIS!!!
-CDDEFNAME=/dev/sdc
+CDDEFNAME=/dev/sdX
+
 #SD card device name, CHANGE THIS!!!
+#for example, SDNAME=/dev/sdc
 SDNAME=${CDDEFNAME}
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
