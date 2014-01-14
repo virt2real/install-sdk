@@ -1,9 +1,10 @@
 #########################################################
 # Copyright (C) 2013 Virt2real (http://www.virt2real.ru)
 #
-
+#SD card default name, DONT CHANGE THIS!!!
+CDDEFNAME=/dev/sdc
 #SD card device name, CHANGE THIS!!!
-SDNAME=/dev/sdc
+SDNAME=${CDDEFNAME}
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
@@ -393,7 +394,7 @@ install_intro:
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == ${SDDEFNAME} ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 
 	$(V)if [ ! "$(OK)" = "1" ] ; then \
@@ -414,7 +415,7 @@ prepare_partitions:: install_intro
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == ${SDDEFNAME} ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m"; exit 1 ; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; fi
 	$(ECHO) ""
@@ -439,7 +440,7 @@ install_bootloader:: install_intro getuboot getdvsdk
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == ${SDDEFNAME} ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; exit 1; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; $(M_ECHO) "";  fi
@@ -513,7 +514,7 @@ mount_partitions:
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == ${SDDEFNAME} ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; $(M_ECHO) ""; exit 1; fi
 	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)$(PARTITIONPREFIX)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
@@ -524,7 +525,7 @@ umount_partitions:
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ $(SDNAME) == "/dev/sdX" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ $(SDNAME) == ${SDDEFNAME} ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ $(BOOTDIR) ] ; then if [ -d $(BOOTDIR) ] ; then $(M_ECHO) "\033[1mUmounting boot partition\033[0m"; umount $(BOOTDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(BOOTDIR); fi ; fi
 	$(V)if [ $(ROOTFSDIR) ] ; then if [ -d $(ROOTFSDIR) ] ; then $(M_ECHO) "\033[1mUmounting rootfs partition\033[0m"; umount $(ROOTFSDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(ROOTFSDIR); fi ; fi
