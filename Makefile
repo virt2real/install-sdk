@@ -247,6 +247,14 @@ kernelheaders:
 	$(ECHO) ""
 	$(V)make --directory=kernel ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) INSTALL_HDR_PATH=$(shell pwd)/kernel-headers headers_install 
 
+kernelupdate:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mLinux Kernel Update for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd kernel
+	$(V)git pull
+	$(ECHO) "\n\033[1mkernel update done\033[0m"
+
 #########################################################
 # filesystem (Buildroot)
 
@@ -274,6 +282,14 @@ fsbuild:
 	$(ECHO) ""
 	$(V)make --directory=fs ARCH=arm CSPATH=$(CSPATH)
 
+fsupdate:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mLinux Filesystem Update for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd fs
+	$(V)git pull
+	$(ECHO) "\n\033[1mfilesystem update done\033[0m"
+
 #########################################################
 # DVSDK
 
@@ -295,6 +311,14 @@ dvsdkinstall:
 	$(ECHO) ""
 	$(V)make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install
 
+dvsdkupdate:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mDVSDK Update for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd dvsdk
+	$(V)git pull
+	$(ECHO) "\n\033[1mdvsdk update done\033[0m"
+
 
 #########################################################
 # U-Boot
@@ -312,6 +336,27 @@ ubootdefconfig:
 	$(ECHO) "\033[1;34mU-Boot default config for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
+
+ubootupdate:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mU-Boot Update for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd uboot
+	$(V)git pull
+	$(ECHO) "\n\033[1muboot update done\033[0m"
+
+
+#########################################################
+# adminka
+
+adminkaupdate:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mAdminka Update for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd adminka
+	$(V)git pull
+	$(ECHO) "\n\033[1madminka update done\033[0m"
+
 
 #########################################################
 # defconfig all
@@ -533,5 +578,15 @@ download_current:
 	$(ECHO) ""
 	$(V)$(WGET) -P $(DOWNLOADDIR) http://files.virt2real.ru/firmware/virt2real-board/1.1/current.tar.gz
 	$(ECHO) "\033[32m   done\033[0m"
+
+
+#########################################################
+# Updates
+
+updateprefix:
+	$(ECHO) "\n\033[1mUpdate Virt2real SDK components\033[0m"
+	
+
+update:: updateprefix adminkaupdate dvsdkupdate fsupdate kernelupdate ubootupdate
 
 .PHONY : clean
