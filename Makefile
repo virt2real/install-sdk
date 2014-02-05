@@ -6,7 +6,7 @@ SDDEFNAME=/dev/sdX
 
 #SD card device name, CHANGE THIS!!!
 #for example, SDNAME=/dev/sdc
-SDNAME=$(SDDEFNAME)
+SDNAME=/dev/sdc
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
@@ -41,11 +41,26 @@ ROOTFSDIR:=${shell mount | grep $(SDNAME)$(PARTITIONPREFIX)2 | awk 'BEGIN { } { 
 
 CSPATH=$(DEVDIR)/codesourcery/arm-2013.05
 CSPATH2=$(DEVDIR)/codesourcery/arm-2012.03
+CSPATH3=$(DEVDIR)/codesourcery/arm-2009q1
+
 CSFILE=arm-2013.05-24-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
 CSFILE2=arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+CSFILE3=arm-2009q1-203-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
 
+
+
+# crosscompiler for all but no other two
 CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
+
+# crosscompiler for U-boot
 CROSSCOMPILE2=$(CSPATH2)/bin/arm-none-linux-gnueabi-
+
+# crosscompiler for NAND flasher
+CROSSCOMPILE3=$(CSPATH3)/bin/arm-none-linux-gnueabi-
+
+
+
+# kernel full version info
 export KERNEL_NAME=3.9.0-rc6-virt2real+
 
 #########################################################
@@ -93,7 +108,7 @@ help:
 #########################################################
 # Common SDK
 
-getsdk:: getcodesourcery getkernel getdvsdk getfs getadminka getuboot
+getsdk:: getcodesourcery getkernel getdvsdk getfs getadminka getuboot getnandflasher
 
 		$(ECHO) ""
 		$(ECHO) "\033[1;34mVirt2real SDK is ready to rock'n'roll!\033[0m"
@@ -202,6 +217,41 @@ getcodesourcery:
 		tar xvf $(DOWNLOADDIR)/$(CSFILE2) -C codesourcery $(OUTPUT) ; \
 		$(M_ECHO) "\033[32m   done\033[0m" ; \
 		$(M_ECHO) "" ; \
+	fi
+
+	$(V)if [ -d $(CSPATH3) ] ; \
+	then \
+		$(M_ECHO) ""; \
+		$(M_ECHO) "\033[32mCodeSourcery found, skipping\033[0m" ; \
+		$(M_ECHO) ""; \
+	else \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mDownload CodeSourcery\033[0m" ;\
+		$(M_ECHO) "" ;\
+		if [ -f $(DOWNLOADDIR)/$(CSFILE3) ] ; then rm $(DOWNLOADDIR)/$(CSFILE3) $(OUTPUT); fi ; \
+		$(WGET) -P $(DOWNLOADDIR) http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/$(CSFILE3) ; \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[32m   done\033[0m" ; \
+		mkdir codesourcery $(OUTPUT); \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mUnpacking CodeSourcery\033[0m" ;\
+		$(M_ECHO) "" ; \
+		tar xvf $(DOWNLOADDIR)/$(CSFILE3) -C codesourcery $(OUTPUT) ; \
+		$(M_ECHO) "\033[32m   done\033[0m" ; \
+		$(M_ECHO) "" ; \
+	fi
+
+
+getnandflasher:
+	$(V)if [ -d nand_flasher ] ; \
+	then \
+		$(M_ECHO) "\033[32mNANDflasher found, skipping\033[0m" ; \
+		$(M_ECHO) ""; \
+	else \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mDownload NAND flasher\033[0m" ;\
+		$(M_ECHO) "" ;\
+		git clone https://github.com/virt2real/nand_flasher.git nand_flasher ; \
 	fi
 
 
@@ -348,7 +398,7 @@ ubootclean:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=uboot ARCH=arm clean
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) clean
 
 ubootupdate:
 	$(ECHO) ""
@@ -447,10 +497,10 @@ install_bootloader:: install_intro getuboot getdvsdk
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; exit 1; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; $(M_ECHO) "";  fi
 	$(V)if [ ! -f uboot/tools/uflash/uflash ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getuboot to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ ! -f dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getdvsdk to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ ! -f dvsdk/psp/board_utilities/serial_flash/dm365/UBL_DM36x_SDMMC.bin ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getdvsdk to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
 	$(ECHO) ""
 	$(ECHO) "\033[1mFlashing bootloader...\033[0m"
-	$(V)sudo uboot/tools/uflash/uflash -d $(SDNAME) -u dvsdk/psp/board_utilities/ccs/dm365/UBL_DM36x_SDMMC.bin -b uboot/u-boot.bin -e 0x82000000 -l 0x82000000 $(OUTPUT)
+	$(V)sudo uboot/tools/uflash/uflash -d $(SDNAME) -u dvsdk/psp/board_utilities/serial_flash/dm365/UBL_DM36x_SDMMC.bin -b uboot/u-boot.bin -e 0x82000000 -l 0x82000000 $(OUTPUT)
 	$(ECHO) "";
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
@@ -540,6 +590,71 @@ sync_partitions:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
+
+#########################################################
+# NAND flasher
+# based on http://processors.wiki.ti.com/index.php/SD_card_boot_and_flashing_tool_for_DM355_and_DM365
+#
+
+nandbuild:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mNAND flasher build for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	export PATH=$(CSPATH3)/bin:$(DEVDIR)/uboot/tools:$PATH
+	$(V)make --directory=nand_flasher -j4 ARCH=arm CROSSCOMPILE=$(CROSSCOMPILE3) all
+	$(ECHO) "\n\033[1mNAND flasher build  done\033[0m"
+
+nandclean:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mNAND flasher clean for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)make --directory=nand_flasher ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE3) clean
+
+nandupdate:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mNAND flasher Update for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd nand_flasher
+	$(V)git pull
+	$(ECHO) "\n\033[1mNAND flasher update done\033[0m"
+
+nandformatcard:
+	$(ECHO) ""
+	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m"; exit 1 ; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; fi
+
+	$(V)$(M_ECHO) "\033[31mWARNING!!! Device \033[1m$(SDNAME)\033[0m \033[31mwill be erased! \033[0m"
+	$(V)$(M_ECHO) ""
+	$(V)read -p "Press Enter to continue or Ctrl-C to abort"
+
+	$(ECHO) ""
+	$(V)$(ECHO) "\033[1;34mFormatting SD card for NAND flasher\033[0m"
+	$(V)$(ECHO) ""
+	$(V)cd $(DEVDIR)/nand_flasher && ./dm3xx_sd_boot format $(SDNAME)
+	$(V)sync
+	$(ECHO) "\n\033[1mFormating SD card for NAND flasher done\033[0m"
+	$(V)$(ECHO) ""
+
+nandinstallcard:
+	$(ECHO) ""
+	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)$(PARTITIONPREFIX)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
+	$(ECHO) ""
+	$(V)$(ECHO) "\033[1;34mInstalling SD card for NAND flasher\033[0m"
+	$(ECHO) ""
+
+	$(V)cd $(DEVDIR)/nand_flasher && ./dm3xx_sd_boot data $(MOUNTPOINT)/boot/dm3xx.dat
+
+	$(ECHO) ""
+	$(V)$(M_ECHO) "\033[1mUmounting boot partition\033[0m"
+
+	$(V)umount $(MOUNTPOINT)/boot
+	$(V)rmdir $(MOUNTPOINT)/boot	
+
+	$(ECHO) "\n\033[1mInstalling SD card for NAND flasher done\033[0m"
+	$(V)$(ECHO) ""
+
+
 #########################################################
 # Tarballs and images
 
@@ -600,6 +715,6 @@ updateprefix:
 	$(ECHO) "\n\033[1mUpdate Virt2real SDK components\033[0m"
 	
 
-update:: updateprefix adminkaupdate dvsdkupdate fsupdate kernelupdate ubootupdate
+update:: updateprefix adminkaupdate dvsdkupdate fsupdate kernelupdate ubootupdate nandupdate
 
 .PHONY : clean
