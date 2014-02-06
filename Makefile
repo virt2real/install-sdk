@@ -6,7 +6,7 @@ SDDEFNAME=/dev/sdX
 
 #SD card device name, CHANGE THIS!!!
 #for example, SDNAME=/dev/sdc
-SDNAME=/dev/sdc
+SDNAME=/dev/sdX
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
@@ -334,6 +334,9 @@ fsbuild:
 	$(ECHO) "\033[1;34mLinux Filesystem build for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=fs ARCH=arm CSPATH=$(CSPATH)
+	$(ECHO) ""
+	$(ECHO) "\n\033[1mFilesystem build done\033[0m"
+	$(ECHO) ""
 
 fsupdate:
 	$(ECHO) ""
