@@ -6,7 +6,7 @@ SDDEFNAME=/dev/sdX
 
 #SD card device name, CHANGE THIS!!!
 #for example, SDNAME=/dev/sdc
-SDNAME=/dev/sdX
+SDNAME=/dev/sdc
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
@@ -41,23 +41,15 @@ ROOTFSDIR:=${shell mount | grep $(SDNAME)$(PARTITIONPREFIX)2 | awk 'BEGIN { } { 
 
 CSPATH=$(DEVDIR)/codesourcery/arm-2013.05
 CSPATH2=$(DEVDIR)/codesourcery/arm-2012.03
-CSPATH3=$(DEVDIR)/codesourcery/arm-2009q1
 
 CSFILE=arm-2013.05-24-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
 CSFILE2=arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
-CSFILE3=arm-2009q1-203-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
-
-
 
 # crosscompiler for all but no other two
 CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
 
 # crosscompiler for U-boot
 CROSSCOMPILE2=$(CSPATH2)/bin/arm-none-linux-gnueabi-
-
-# crosscompiler for NAND flasher
-CROSSCOMPILE3=$(CSPATH3)/bin/arm-none-linux-gnueabi-
-
 
 
 # kernel full version info
@@ -218,29 +210,6 @@ getcodesourcery:
 		$(M_ECHO) "\033[32m   done\033[0m" ; \
 		$(M_ECHO) "" ; \
 	fi
-
-	$(V)if [ -d $(CSPATH3) ] ; \
-	then \
-		$(M_ECHO) ""; \
-		$(M_ECHO) "\033[32mCodeSourcery found, skipping\033[0m" ; \
-		$(M_ECHO) ""; \
-	else \
-		$(M_ECHO) "" ; \
-		$(M_ECHO) "\033[1;34mDownload CodeSourcery\033[0m" ;\
-		$(M_ECHO) "" ;\
-		if [ -f $(DOWNLOADDIR)/$(CSFILE3) ] ; then rm $(DOWNLOADDIR)/$(CSFILE3) $(OUTPUT); fi ; \
-		$(WGET) -P $(DOWNLOADDIR) http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/$(CSFILE3) ; \
-		$(M_ECHO) "" ; \
-		$(M_ECHO) "\033[32m   done\033[0m" ; \
-		mkdir codesourcery $(OUTPUT); \
-		$(M_ECHO) "" ; \
-		$(M_ECHO) "\033[1;34mUnpacking CodeSourcery\033[0m" ;\
-		$(M_ECHO) "" ; \
-		tar xvf $(DOWNLOADDIR)/$(CSFILE3) -C codesourcery $(OUTPUT) ; \
-		$(M_ECHO) "\033[32m   done\033[0m" ; \
-		$(M_ECHO) "" ; \
-	fi
-
 
 getnandflasher:
 	$(V)if [ -d nand_flasher ] ; \
@@ -603,15 +572,15 @@ nandbuild:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mNAND flasher build for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	export PATH=$(CSPATH3)/bin:$(DEVDIR)/uboot/tools:$PATH
-	$(V)make --directory=nand_flasher -j4 ARCH=arm CROSSCOMPILE=$(CROSSCOMPILE3) all
+	export PATH=$(CSPATH)/bin:$(DEVDIR)/uboot/tools:$PATH
+	$(V)make --directory=nand_flasher -j4 ARCH=arm CROSSCOMPILE=$(CROSSCOMPILE) all
 	$(ECHO) "\n\033[1mNAND flasher build  done\033[0m"
 
 nandclean:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mNAND flasher clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=nand_flasher ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE3) clean
+	$(V)make --directory=nand_flasher ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) clean
 
 nandupdate:
 	$(ECHO) ""
