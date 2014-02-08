@@ -6,7 +6,7 @@ SDDEFNAME=/dev/sdX
 
 #SD card device name, CHANGE THIS!!!
 #for example, SDNAME=/dev/sdc
-SDNAME=/dev/sdc
+SDNAME=/dev/sdX
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
@@ -40,10 +40,16 @@ ROOTFSDIR:=${shell mount | grep $(SDNAME)$(PARTITIONPREFIX)2 | awk 'BEGIN { } { 
 # global SDK settings
 
 CSPATH=$(DEVDIR)/codesourcery/arm-2013.05
+CSPATH2=$(DEVDIR)/codesourcery/arm-2012.03
+
 CSFILE=arm-2013.05-24-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
+CSFILE2=arm-2012.03-57-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
 
 # crosscompiler for all but no other two
 CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
+
+# crosscompiler for U-boot
+CROSSCOMPILE2=$(CSPATH2)/bin/arm-none-linux-gnueabi-
 
 
 # kernel full version info
@@ -157,11 +163,7 @@ getuboot:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload Virt2real U-boot\033[0m" ;\
 		$(M_ECHO) "" ;\
-		#git clone https://github.com/virt2real/v2r_uboot.git uboot ; \
-		git clone https://github.com/virt2real/u-boot.git uboot ; \
-		cd uboot ; \
-		git checkout v2011.03-virt2real.20140207 ; \
-		cd .. ; \
+		git clone https://github.com/virt2real/v2r_uboot.git uboot ; \
 	fi
 
 getcodesourcery:
@@ -187,6 +189,27 @@ getcodesourcery:
 		$(M_ECHO) "" ; \
 	fi
 
+	$(V)if [ -d $(CSPATH2) ] ; \
+	then \
+		$(M_ECHO) ""; \
+		$(M_ECHO) "\033[32mCodeSourcery found, skipping\033[0m" ; \
+		$(M_ECHO) ""; \
+	else \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mDownload CodeSourcery\033[0m" ;\
+		$(M_ECHO) "" ;\
+		if [ -f $(DOWNLOADDIR)/$(CSFILE2) ] ; then rm $(DOWNLOADDIR)/$(CSFILE2) $(OUTPUT); fi ; \
+		$(WGET) -P $(DOWNLOADDIR) http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/$(CSFILE2) ; \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[32m   done\033[0m" ; \
+		mkdir codesourcery $(OUTPUT); \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mUnpacking CodeSourcery\033[0m" ;\
+		$(M_ECHO) "" ; \
+		tar xvf $(DOWNLOADDIR)/$(CSFILE2) -C codesourcery $(OUTPUT) ; \
+		$(M_ECHO) "\033[32m   done\033[0m" ; \
+		$(M_ECHO) "" ; \
+	fi
 
 getnandflasher:
 	$(V)if [ -d nand_flasher ] ; \
@@ -332,22 +355,22 @@ ubootbuild:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot build for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) distclean
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) distclean
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) CONFIG_SYS_TEXT_BASE="0x82000000" EXTRA_CPPFLAGS="-DCONFIG_SPLASH_ADDRESS="0x80800000" -DCONFIG_SPLASH_COMPOSITE=1"
 	$(ECHO) "\n\033[1mU-Boot build  done\033[0m"
 
 ubootdefconfig:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot default config for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) davinci_dm365v2r_config
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) davinci_dm365v2r_config
 
 ubootclean:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mU-Boot clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) clean
+	$(V)make --directory=uboot ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE2) clean
 
 ubootupdate:
 	$(ECHO) ""
@@ -395,7 +418,7 @@ install_intro:
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 
 	$(V)if [ ! "$(OK)" = "1" ] ; then \
@@ -416,7 +439,7 @@ prepare_partitions:: install_intro
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m"; exit 1 ; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; fi
 	$(ECHO) ""
@@ -441,7 +464,7 @@ install_bootloader:: install_intro getuboot getdvsdk
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; exit 1; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; $(M_ECHO) "";  fi
@@ -515,7 +538,7 @@ mount_partitions:
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; $(M_ECHO) ""; exit 1; fi
 	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)$(PARTITIONPREFIX)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
@@ -526,7 +549,7 @@ umount_partitions:
 	$(ECHO) ""
 
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ $(BOOTDIR) ] ; then if [ -d $(BOOTDIR) ] ; then $(M_ECHO) "\033[1mUmounting boot partition\033[0m"; umount $(BOOTDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(BOOTDIR); fi ; fi
 	$(V)if [ $(ROOTFSDIR) ] ; then if [ -d $(ROOTFSDIR) ] ; then $(M_ECHO) "\033[1mUmounting rootfs partition\033[0m"; umount $(ROOTFSDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(ROOTFSDIR); fi ; fi
@@ -570,7 +593,7 @@ nandupdate:
 nandformatcard:
 	$(ECHO) ""
 	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ "$(SDNAME)" == "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m"; exit 1 ; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; fi
 
 	$(V)$(M_ECHO) "\033[31mWARNING!!! Device \033[1m$(SDNAME)\033[0m \033[31mwill be erased! \033[0m"
