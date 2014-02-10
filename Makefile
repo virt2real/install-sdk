@@ -49,6 +49,14 @@ CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
 # kernel full version info
 export KERNEL_NAME=3.9.0-rc6-virt2real+
 
+
+# GitHub prefix
+ifdef TEAM
+    GITHUB_V2R=git@github.com:virt2real
+else
+    GITHUB_V2R=https://github.com/virt2real
+endif
+
 #########################################################
 
 help:
@@ -88,6 +96,7 @@ help:
 	$(ECHO) "\033[1mmake parameters:\033[0m"
 	$(ECHO) ""
 	$(ECHO) "   VERBOSE		- if 1 - output all commands (VERBOSE=1)"
+	$(ECHO) "   TEAM		- if is set - clone by ssh (TEAM=1)"
 	$(ECHO) ""
 
 
@@ -109,7 +118,7 @@ getkernel:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload Virt2real kernel\033[0m" ;\
 		$(M_ECHO) "" ;\
-		git clone https://github.com/virt2real/linux-davinci kernel ; \
+		git clone $(GITHUB_V2R)/linux-davinci kernel ; \
 	fi
 
 getdvsdk:
@@ -121,7 +130,7 @@ getdvsdk:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload DVSDK\033[0m" ;\
 		$(M_ECHO) "" ;\
-		git clone https://github.com/virt2real/DVSDK.git dvsdk ; \
+		git clone $(GITHUB_V2R)/DVSDK.git dvsdk ; \
 	fi
 
 getfs:
@@ -133,7 +142,7 @@ getfs:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload Virt2real filesystem\033[0m" ;\
 		$(M_ECHO) "" ;\
-		git clone https://github.com/virt2real/v2r_buildroot.git fs ; \
+		git clone $(GITHUB_V2R)/v2r_buildroot.git fs ; \
 	fi
 
 getadminka:
@@ -145,7 +154,7 @@ getadminka:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload Virt2real admin panel\033[0m" ;\
 		$(M_ECHO) "" ;\
-		git clone https://github.com/virt2real/admin_panel.git adminka ; \
+		git clone $(GITHUB_V2R)/admin_panel.git adminka ; \
 	fi
 
 getuboot:
@@ -157,8 +166,8 @@ getuboot:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload Virt2real U-boot\033[0m" ;\
 		$(M_ECHO) "" ;\
-		#git clone https://github.com/virt2real/v2r_uboot.git uboot ; \
-		git clone https://github.com/virt2real/u-boot.git uboot ; \
+		#git clone $(GITHUB_V2R)/v2r_uboot.git uboot ; \
+		git clone $(GITHUB_V2R)/u-boot.git uboot ; \
 		cd uboot ; \
 		git checkout v2011.03-virt2real.20140207 ; \
 		cd .. ; \
@@ -197,7 +206,7 @@ getnandflasher:
 		$(M_ECHO) "" ; \
 		$(M_ECHO) "\033[1;34mDownload NAND flasher\033[0m" ;\
 		$(M_ECHO) "" ;\
-		git clone https://github.com/virt2real/nand_flasher.git nand_flasher ; \
+		git clone $(GITHUB_V2R)/nand_flasher.git nand_flasher ; \
 	fi
 
 
