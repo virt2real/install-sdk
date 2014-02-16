@@ -463,7 +463,9 @@ install_bootloader:: install_intro getuboot getdvsdk
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-install_kernel_fs:
+install_kernel_fs: install_kernel install_fs
+
+install_kernel:
 	$(V)if [ ! -f kernel/arch/arm/boot/uImage ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mFile uImage not found, aborting\033[0m"; exit 1; fi
 	$(V)if [ ! -f addons/uEnv.txt ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mFile uEnv.txt not found, aborting\033[0m"; exit 1; fi
 	$(ECHO) ""
@@ -473,6 +475,7 @@ install_kernel_fs:
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
+install_fs:
 	$(V)if [ ! -f fs/output/images/rootfs.tar ]; then $(M_ECHO) ""; $(M_ECHO) "\033[31mFile rootfs.tar not found, aborting\033[0m"; exit 1; fi
 	$(ECHO) "\033[1mCopying root filesystem\033[0m"
 	$(V)sudo tar xvf fs/output/images/rootfs.tar -C $(MOUNTPOINT)/rootfs $(OUTPUT)
