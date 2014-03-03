@@ -430,7 +430,14 @@ prepare_partitions:: install_intro
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m"; exit 1 ; else $(M_ECHO) ""; $(M_ECHO) "\033[32mDevice $(SDNAME) found!\033[0m"; fi
 	$(ECHO) ""
 	$(ECHO) "\033[1mCreating the partitions on microSD...\033[0m"
-	$(V)echo -e "1,5,0xC,*\n6,,L" | sudo sfdisk $(SDNAME) -q -D -H255 -S63 $(OUTPUT)
+
+	# full SD size
+	#	$(V)echo -e "1,5,0xC,*\n6,,L" | sudo sfdisk $(SDNAME) -q -D -H255 -S63 $(OUTPUT)
+
+	# limited SD size (about 1Gb)
+	$(V)echo -e "1,5,0xC,*\n6,130,L" | sudo sfdisk $(SDNAME) -q -D -H255 -S63 --force $(OUTPUT)
+
+
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
