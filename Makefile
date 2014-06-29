@@ -685,4 +685,13 @@ updateprefix:
 
 update:: updateprefix adminkaupdate dvsdkupdate fsupdate kernelupdate ubootupdate nandupdate
 
+start_package_http:
+	$(V)if [ ! -d fs/output/xpackage ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mPackage directory 'fs/output/xpackage' not found, aborting\033[0m"; exit 1; fi
+	$(V)if [ ! -x "$(shell which python)" ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mpython is not installed, aborting\033[0m"; exit 1; fi
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mMake sure /etc/opkg/opkg.conf contains 'src \"all\" http://<this-machine-IP-address>:8000'\033[0m"
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mStaring HTTP server. Press Ctrl-C to stop server\033[0m"
+	$(V) cd fs/output/xpackage && python -m SimpleHTTPServer 8000
+
 .PHONY : clean
