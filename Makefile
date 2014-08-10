@@ -301,6 +301,12 @@ fsupdate:
 	$(V)git pull
 	$(ECHO) "\n\033[1mfilesystem update done\033[0m"
 
+%-xpkg:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mBuilding package $@\033[0m"
+	$(ECHO) ""
+	$(V)make --directory=fs ARCH=arm CSPATH=$(CSPATH) DEVDIR=$(DEVDIR) $@
+
 #########################################################
 # DVSDK
 
