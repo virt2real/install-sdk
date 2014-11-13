@@ -301,12 +301,6 @@ fsupdate:
 	$(V)git pull
 	$(ECHO) "\n\033[1mfilesystem update done\033[0m"
 
-%-xpkg:
-	$(ECHO) ""
-	$(ECHO) "\033[1;34mBuilding package $@\033[0m"
-	$(ECHO) ""
-	$(V)make --directory=fs ARCH=arm CSPATH=$(CSPATH) DEVDIR=$(DEVDIR) $@
-
 #########################################################
 # DVSDK
 
@@ -522,6 +516,8 @@ install_addons:
 install_adminka:
 	$(ECHO) "\033[1mCopying admin panel\033[0m"
 	$(V)sudo cp -r adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
+	$(V)mkdir -p $(MOUNTPOINT)/rootfs/var/www_user/ $(OUTPUT)
+	$(V)sudo cp -r adminka/www_user/* $(MOUNTPOINT)/rootfs/var/www_user/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
