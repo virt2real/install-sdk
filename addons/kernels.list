@@ -2,3 +2,4 @@ uImage.master	Digital camera SD mode (640x480 max)
 uImage.hd	Digital camera HD mode (1280x720 max)	*
 uImage.tvp5150	Analog camera SD mode (720x576 max)	
 uImage.hdmi	HDMI camera (1280x720 max)	
+
