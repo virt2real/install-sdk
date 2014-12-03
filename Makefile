@@ -14,6 +14,7 @@ PARTITIONPREFIX=
 
 
 export DEVDIR=${shell pwd}
+export TARGETDIR=$(DEVDIR)/fs/output/target
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
 MOUNTPOINT=${shell pwd}/images
@@ -43,12 +44,10 @@ CSPATH=$(DEVDIR)/codesourcery/arm-2013.05
 CSFILE=arm-2013.05-24-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2
 
 # crosscompiler for all but no other two
-CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
-
+export CROSSCOMPILE=$(CSPATH)/bin/arm-none-linux-gnueabi-
 
 # kernel full version info
 export KERNEL_NAME=3.9.0-rc6-virt2real+
-
 
 # GitHub prefix
 ifdef TEAM
@@ -209,6 +208,18 @@ getnandflasher:
 		git clone $(GITHUB_V2R)/nand_flasher.git nand_flasher ; \
 	fi
 
+getdrivers:
+	$(V)if [ -d drivers ] ; \
+	then \
+		$(M_ECHO) "\033[32mDrivers found, skipping\033[0m" ; \
+		$(M_ECHO) ""; \
+	else \
+		$(M_ECHO) "" ; \
+		$(M_ECHO) "\033[1;34mDownload Drivers\033[0m" ;\
+		$(M_ECHO) "" ;\
+		git clone $(GITHUB_V2R)/standalonedrivers.git drivers ; \
+	fi
+
 
 ###########################################################
 
@@ -291,6 +302,16 @@ fsbuild:
 	$(V)make --directory=fs ARCH=arm CSPATH=$(CSPATH)
 	$(ECHO) ""
 	$(ECHO) "\n\033[1mFilesystem build done\033[0m"
+	$(ECHO) ""
+
+fsrelease:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mLinux Filesystem release for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)rm -f $(DEVDIR)/fs/output/images/rootfs.tar
+	$(V)tar -cvf $(DEVDIR)/fs/output/images/rootfs.tar -C $(TARGETDIR) .
+	$(ECHO) ""                                                         
+	$(ECHO) "\n\033[1mFilesystem release done\033[0m"
 	$(ECHO) ""
 
 fsupdate:
@@ -380,6 +401,22 @@ adminkaupdate:
 
 
 #########################################################
+# standalone drivers
+driversbuild:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mStandalone drivers build for Virt2real SDK\033[0m"
+	$(ECHO) ""
+	$(V)cd drivers && ./build.sh BUILD
+
+install_drivers:
+	$(ECHO) ""
+	$(ECHO) "\033[1mInstalling drivers \033[0m"
+	$(ECHO) ""
+	$(V)cd drivers && ./build.sh INSTALL
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
+#########################################################
 # defconfig all
 
 defconfig:: kerneldefconfig fsdefconfig ubootdefconfig
@@ -393,7 +430,7 @@ clean:: kernelclean fsclean dvsdkclean ubootclean
 #########################################################
 # Build all
 
-build:: ubootbuild kernelbuild kernelmodulesbuild dvsdkbuild fsbuild
+build:: ubootbuild kernelbuild kernelmodulesbuild dvsdkbuild driversbuild fsbuild
 
 
 
@@ -415,6 +452,9 @@ install_intro:
 	$(M_ECHO) "" ; \
 	read -p "Press Enter to continue or Ctrl-C to abort" ; \
 	fi
+	$(ECHO) ""
+	$(ECHO) "\033[1mDeleting old fs image...\033[0m"
+	$(V)rm -f $(DEVDIR)/fs/output/images/*
 	$(ECHO) ""
 	$(ECHO) "Ok, next step"
 	$(ECHO) ""
@@ -479,6 +519,7 @@ install_kernel:
 	$(ECHO) "\033[1mCopying uImage\033[0m"
 	$(V)sudo cp kernel/arch/arm/boot/uImage $(MOUNTPOINT)/boot/ $(OUTPUT)
 	$(V)sudo cp addons/uEnv.txt $(MOUNTPOINT)/boot/ $(OUTPUT)
+	$(V)sudo cp addons/kernels.list $(MOUNTPOINT)/boot/ $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -492,19 +533,19 @@ install_fs:
 install_dsp:
 	$(ECHO) "\033[1mInstalling DSP modules\033[0m"
 	$(V)sudo DEVDIR=$(DEVDIR) make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
-	$(V)sudo cp -r $(DEVDIR)/dvsdk/install/dm365/* $(MOUNTPOINT)/rootfs/  $(OUTPUT)
+	$(V)sudo cp -rf $(DEVDIR)/dvsdk/install/dm365/* $(TARGETDIR)
 
-	$(V)echo "kernel/drivers/dsp/cmemk.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)echo "kernel/drivers/dsp/dm365mmap.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)echo "kernel/drivers/dsp/irqk.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)echo "kernel/drivers/dsp/edmak.ko:" | sudo tee -a $(MOUNTPOINT)/rootfs/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/cmemk.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/dm365mmap.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/irqk.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/edmak.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
 
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
 install_modules:
 	$(ECHO) "\033[1mInstalling kernel modules\033[0m"
-	$(V)sudo make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(MOUNTPOINT)/rootfs $(OUTPUT)
+	$(V)sudo make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(TARGETDIR) $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -515,13 +556,16 @@ install_addons:
 
 install_adminka:
 	$(ECHO) "\033[1mCopying admin panel\033[0m"
-	$(V)sudo cp -r adminka/www/* $(MOUNTPOINT)/rootfs/var/www/ $(OUTPUT)
-	$(V)mkdir -p $(MOUNTPOINT)/rootfs/var/www_user/ $(OUTPUT)
-	$(V)sudo cp -r adminka/www_user/* $(MOUNTPOINT)/rootfs/var/www_user/ $(OUTPUT)
+	$(V)mkdir -p $(TARGETDIR)/var/www $(OUTPUT)
+	$(V)sudo cp -r adminka/www/* $(TARGETDIR)/var/www $(OUTPUT)
+	$(V)mkdir -p $(TARGETDIR)/var/www_user $(OUTPUT)
+	$(V)sudo cp -r adminka/www_user/* $(TARGETDIR)/var/www_user $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
-install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_kernel_fs  install_modules install_dsp install_addons install_adminka sync_partitions umount_partitions
+#install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_kernel_fs  install_modules install_dsp install_addons install_adminka sync_partitions umount_partitions
+#install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsbuild install_kernel_fs install_addons sync_partitions umount_partitions
+install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons sync_partitions umount_partitions
 
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
