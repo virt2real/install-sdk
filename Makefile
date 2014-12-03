@@ -102,7 +102,7 @@ help:
 #########################################################
 # Common SDK
 
-getsdk:: getcodesourcery getkernel getdvsdk getfs getadminka getuboot getnandflasher
+getsdk:: getcodesourcery getkernel getdvsdk getfs getadminka getuboot getnandflasher getdrivers
 
 		$(ECHO) ""
 		$(ECHO) "\033[1;34mVirt2real SDK is ready to rock'n'roll!\033[0m"
