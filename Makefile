@@ -6,7 +6,9 @@ SDDEFNAME=/dev/sdX
 
 #SD card device name, CHANGE THIS!!!
 #for example, SDNAME=/dev/sdc
-SDNAME=/dev/sdX
+# if defined environment variable then not initialized
+# !! dont need change Makefile: SDNAME=/dev/sdc make install or export SDNAME=/dev/sdc !!
+SDNAME?=/dev/sdX
 
 # if your cardreader device partitions looks like "mmcblk0p1" - set PARTITIONPREFIX=p
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
