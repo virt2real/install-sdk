@@ -312,7 +312,7 @@ fsrelease:
 	$(ECHO) ""
 	$(V)rm -f $(DEVDIR)/fs/output/images/rootfs.tar
 	$(V)tar -cvf $(DEVDIR)/fs/output/images/rootfs.tar -C $(TARGETDIR) .
-	$(ECHO) ""                                                         
+	$(ECHO) ""
 	$(ECHO) "\n\033[1mFilesystem release done\033[0m"
 	$(ECHO) ""
 
@@ -408,7 +408,10 @@ driversbuild:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mStandalone drivers build for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)cd drivers && ./build.sh BUILD
+	$(V)cd drivers && ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) ./build.sh BUILD
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
 
 install_drivers:
 	$(ECHO) ""
