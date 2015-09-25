@@ -6,4 +6,6 @@ fs/
 kernel/
 uboot/
 kernel-headers/
+drivers/
+nand_flasher/
 *.swp
