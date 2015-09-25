@@ -14,12 +14,17 @@ SDNAME?=/dev/sdX
 # else if partitions looks like sdc1 - set PARTITIONPREFIX=   (empty)
 PARTITIONPREFIX=
 
+# SD card img file name
+IMGNAME?=sdcard-$(shell date +%Y%m%d).img
+IMGPATH=images/$(IMGNAME)
 
 export DEVDIR=${shell pwd}
 export TARGETDIR=$(DEVDIR)/fs/output/target
 export PLATFORM=dm365
 export DEVICE=dm365-virt2real
 MOUNTPOINT=${shell pwd}/images
+MPBOOT=$(MOUNTPOINT)/boot
+MPROOT=$(MOUNTPOINT)/rootfs
 DOWNLOADDIR=download
 WGET=wget
 
@@ -32,6 +37,7 @@ endif
 ECHO=$(V)echo -e
 M_ECHO=echo -e
 OUTPUT=> /dev/null
+ERRIGNORE=&> /dev/null
 DATE=${shell date "+%d%m%y-%H%M%S"}
 date=$(DATE)
 OK=0
@@ -78,7 +84,16 @@ help:
 	$(ECHO) ""
 	$(ECHO) "   clean		- clean all"
 	$(ECHO) ""
-	$(ECHO) "   install		- install all"
+	$(ECHO) "   sd_install SDNAME=/dev/sd	- install all to the sd card"
+	$(ECHO) "   img_install <IMGNAME=imgfile>	- install all to the img file"
+	$(ECHO) ""
+	$(ECHO) "   sd_prepare SDNAME=/dev/sd	- format and install bootloader to the sd card"
+	$(ECHO) "   sd_mount SDNAME=/dev/sd	- mount sd card"
+	$(ECHO) ""
+	$(ECHO) "   img_prepare <IMGNAME=imgfile>	- format and install bootloader to the img file"
+	$(ECHO) "   img_mount <IMGNAME=imgfile>	- mount existing img file"
+	$(ECHO) ""
+	$(ECHO) "   umount_partitions	- umount partitions"
 	$(ECHO) ""
 	$(ECHO) "   kernelconfig		- config kernel"
 	$(ECHO) "   kerneldefconfig	- set default config for kernel"
@@ -266,7 +281,7 @@ kernelheaders:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mLinux Kernel Headers install for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=kernel ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) INSTALL_HDR_PATH=$(shell pwd)/kernel-headers headers_install 
+	$(V)make --directory=kernel ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) INSTALL_HDR_PATH=$(shell pwd)/kernel-headers headers_install
 
 kernelupdate:
 	$(ECHO) ""
@@ -417,7 +432,7 @@ install_drivers:
 	$(ECHO) ""
 	$(ECHO) "\033[1mInstalling drivers \033[0m"
 	$(ECHO) ""
-	$(V)cd drivers && ./build.sh INSTALL
+	$(V)cd drivers && ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) ./build.sh INSTALL
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -442,6 +457,16 @@ build:: ubootbuild kernelbuild kernelmodulesbuild dvsdkbuild driversbuild fsbuil
 #########################################################
 # Installer
 
+check_mount:
+	$(V)if [ ! -d $(MPBOOT) ] || [ ! -d $(MPROOT) ] ; \
+		then \
+			$(M_ECHO) "\033[1mPartitions not mounted use make sd_mount or make img_mount\033[0m"; \
+			 $(M_ECHO) ""; \
+			 exit 1; \
+		fi
+
+# SD card
+#
 install_intro:
 	$(ECHO) ""
 
@@ -458,9 +483,9 @@ install_intro:
 	read -p "Press Enter to continue or Ctrl-C to abort" ; \
 	fi
 	$(ECHO) ""
-	$(ECHO) "\033[1mDeleting old fs image...\033[0m"
-	$(V)rm -f $(DEVDIR)/fs/output/images/*
-	$(ECHO) ""
+#	$(ECHO) "\033[1mDeleting old fs image...\033[0m"
+#	$(V)rm -f $(DEVDIR)/fs/output/images/*
+#	$(ECHO) ""
 	$(ECHO) "Ok, next step"
 	$(ECHO) ""
 	$(V)OK=1
@@ -515,6 +540,79 @@ install_bootloader:: install_intro getuboot getdvsdk
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
+# img file
+#
+img_install_intro:
+	$(ECHO) ""
+
+	$(V)if [ ! "$(OK)" = "1" ] ; then \
+	$(M_ECHO) "" ; \
+	$(M_ECHO) "\033[1;34mMain installer for Virt2real\033[0m" ; \
+	$(M_ECHO) "" ; \
+	$(M_ECHO) "\033[31mWARNING!!! Image \033[1m$(IMGNAME)\033[0m \033[31mwill be erased! \033[0m" ; \
+	$(M_ECHO) "" ; \
+	read -p "Press Enter to continue or Ctrl-C to abort" ; \
+	fi
+	$(ECHO) ""
+	$(ECHO) "Ok, next step"
+	$(ECHO) ""
+	$(V)OK=1
+
+img_prepare:: img_install_intro umount_partitions
+	$(ECHO) "\033[1mCreate image file...\033[0m"
+	$(V)dd if=/dev/zero of=${IMGPATH} bs=1M count=1000
+	$(V)sudo losetup /dev/loop0 ${IMGPATH}
+	$(ECHO) ""
+	$(ECHO) "\033[32m   done\033[0m"
+
+	$(V)echo -e "1,5,0xC,*\n6,130,L" | sudo sfdisk /dev/loop0 -q -D -H255 -S63 --force ${OUTPUT}
+
+	sleep 1
+
+	$(V)if [ ! -f uboot/tools/uflash/uflash ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getuboot to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
+	$(V)if [ ! -f dvsdk/psp/board_utilities/serial_flash/dm365/UBL_DM36x_SDMMC.bin ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31muflash not found, aborting. Please, make getdvsdk to download this\033[0m"; $(M_ECHO) ""; exit 1; fi
+	$(ECHO) ""
+	$(ECHO) "\033[1mFlashing bootloader...\033[0m"
+	$(V)sudo uboot/tools/uflash/uflash -d /dev/loop0 -u dvsdk/psp/board_utilities/serial_flash/dm365/UBL_DM36x_SDMMC.bin -b uboot/u-boot.bin -e 0x82000000 -l 0x82000000 $(OUTPUT)
+	$(ECHO) ""
+	$(ECHO) "\033[32m   done\033[0m"
+
+	$(ECHO) "\033[1mMounting and formatting image...\033[0m"
+	$(V)./IMG_MOUNT.sh $(IMGPATH)
+	$(V)sudo mkfs.vfat -F 32 /dev/loop1 -n boot
+	$(V)sudo mkfs.ext3 /dev/loop2 -L root
+	
+	$(ECHO) "";
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
+img_mount:: umount_partitions
+	$(V)if [ ! -f ${IMGPATH} ] ; then $(M_ECHO) ""; $(M_ECHO) "\033[31mPreape image first, aborting. Please, make img_prepare\033[0m"; $(M_ECHO) ""; exit 1; fi
+	$(V)sudo losetup /dev/loop0 ${IMGPATH}
+
+	$(ECHO) "\033[1mMounting image...\033[0m"
+	$(V)./IMG_MOUNT.sh $(IMGPATH)
+	
+	$(ECHO) "";
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
+	$(ECHO) "\033[1mMounting boot partition\033[0m"
+	$(V)mkdir -p ${MPBOOT}
+	$(V)sudo mount /dev/loop1 ${MPBOOT}
+	$(ECHO) ""
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+	
+	$(ECHO) "\033[1mMounting root partition\033[0m"
+	$(V)mkdir -p ${MPROOT}
+	$(V)sudo mount /dev/loop2 ${MPROOT}
+	$(ECHO) ""
+	$(ECHO) "\033[32m   done\033[0m"
+	$(ECHO) ""
+
+# install files to the mounted partitions
+#
 install_kernel_fs: install_kernel install_fs
 
 install_kernel:
@@ -570,8 +668,18 @@ install_adminka:
 
 #install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_kernel_fs  install_modules install_dsp install_addons install_adminka sync_partitions umount_partitions
 #install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsbuild install_kernel_fs install_addons sync_partitions umount_partitions
-install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons sync_partitions umount_partitions
+#install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons sync_partitions umount_partitions
+install_internal:: install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons
+img_install:: img_prepare img_mount install_internal
+	
+	$(ECHO) "   Default user: root"
+	$(ECHO) "   Default password: root"
+	$(ECHO) ""
 
+	$(ECHO) "\033[1mNow you can unmount image $(IMGPATH)\033[0m"
+
+install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_internal
+	
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
 	$(ECHO) ""
@@ -588,18 +696,48 @@ mount_partitions:
 	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
 	$(V)if [ ! -b $(SDNAME) ] ; then $(M_ECHO) "\033[31mDevice $(SDNAME) not found, aborting\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)$(PARTITIONPREFIX)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
+	/Users/svolkov/work/v2r/install-sdk/Makefile$(V)if [ ! -d $(MOUNTPOINT)/boot ] ; then $(M_ECHO) "\033[1mMounting boot partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/boot; sudo mount $(SDNAME)$(PARTITIONPREFIX)1 $(MOUNTPOINT)/boot; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
 	$(V)if [ ! -d $(MOUNTPOINT)/rootfs ] ; then $(M_ECHO) "\033[1mMounting rootfs partition\033[0m"; sudo mkdir -p $(MOUNTPOINT)/rootfs; sudo mount $(SDNAME)$(PARTITIONPREFIX)2 $(MOUNTPOINT)/rootfs; $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; fi
 
-umount_partitions:
+umount_partitions:: sync_partitions
 
 	$(ECHO) ""
 
-	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
-	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+#	$(V)if [ ! $(SDNAME) ] ; then $(M_ECHO) "\033[31mEmpty SD card name, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
+#	$(V)if [ "$(SDNAME)" = "$(SDDEFNAME)" ] ; then $(M_ECHO) "\033[31mSD card name is default, please set SDNAME variable\033[0m" ; $(M_ECHO) ""; exit 1; fi
 
-	$(V)if [ $(BOOTDIR) ] ; then if [ -d $(BOOTDIR) ] ; then $(M_ECHO) "\033[1mUmounting boot partition\033[0m"; umount $(BOOTDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(BOOTDIR); fi ; fi
-	$(V)if [ $(ROOTFSDIR) ] ; then if [ -d $(ROOTFSDIR) ] ; then $(M_ECHO) "\033[1mUmounting rootfs partition\033[0m"; umount $(ROOTFSDIR);  $(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; $(M_ECHO) ""; rmdir $(ROOTFSDIR); fi ; fi
+	$(V)if [ -d $(MPBOOT) ] ; \
+		then \
+			$(M_ECHO) "\033[1mUmounting boot partition\033[0m"; \
+			sudo umount $(MPBOOT) $(OUTPUT) ; \
+			$(M_ECHO) "" ; $(M_ECHO) "\033[32m   done\033[0m"; \
+			$(M_ECHO) ""; \
+			sudo rmdir $(MPBOOT); \
+		fi
+	$(V)if [ -d $(MPROOT) ] ; \
+		then \
+			$(M_ECHO) "\033[1mUmounting rootfs partition\033[0m"; \
+			sudo umount $(MPROOT) $(OUTPUT) ; \
+			$(M_ECHO) "" ; \
+			$(M_ECHO) "\033[32m   done\033[0m"; \
+			$(M_ECHO) ""; \
+			sudo rmdir $(MPROOT); \
+		fi
+	$(V)if [ `sudo losetup /dev/loop0 2>/dev/null| wc -l` -gt 0 ] ; \
+		then \
+			$(M_ECHO) "\033[1mDetach img file from /dev/loop0\033[0m"; \
+			sudo losetup -d /dev/loop0 $(OUTPUT) ; \
+		fi
+	$(V)if [ `sudo losetup /dev/loop1 2> /dev/null | wc -l` -gt 0 ] ; \
+		then \
+			$(M_ECHO) "\033[1mDetach img file from /dev/loop1\033[0m"; \
+			sudo losetup -d /dev/loop1 $(OUTPUT) ; \
+		fi
+	$(V)if [ `sudo losetup /dev/loop2 2> /dev/null | wc -l` -gt 0 ] ; \
+		then \
+			$(M_ECHO) "\033[1mDetach img file from /dev/loop2\033[0m"; \
+			sudo losetup -d /dev/loop2 $(OUTPUT) ; \
+		fi
 
 sync_partitions:
 	$(ECHO) ""

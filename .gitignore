@@ -6,3 +6,4 @@ fs/
 kernel/
 uboot/
 kernel-headers/
+*.swp
