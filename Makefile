@@ -637,20 +637,21 @@ install_fs:
 
 install_dsp:
 	$(ECHO) "\033[1mInstalling DSP modules\033[0m"
-	$(V)sudo DEVDIR=$(DEVDIR) make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
-	$(V)sudo cp -rf $(DEVDIR)/dvsdk/install/dm365/* $(TARGETDIR)
+	$(V)DEVDIR=$(DEVDIR) make --directory=dvsdk LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel cmem_install edma_install irq_install dm365mm_install $(OUTPUT)
+	$(V)cp -rfv $(DEVDIR)/dvsdk/install/dm365/* $(TARGETDIR)
 
-	$(V)echo "kernel/drivers/dsp/cmemk.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)echo "kernel/drivers/dsp/dm365mmap.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)echo "kernel/drivers/dsp/irqk.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
-	$(V)echo "kernel/drivers/dsp/edmak.ko:" | sudo tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/cmemk.ko:" | tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/dm365mmap.ko:" | tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/irqk.ko:" | tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/irqk_hdmi.ko:" | tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
+	$(V)echo "kernel/drivers/dsp/edmak.ko:" | tee -a $(TARGETDIR)/lib/modules/$(KERNEL_NAME)/modules.dep
 
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
 install_modules:
 	$(ECHO) "\033[1mInstalling kernel modules\033[0m"
-	$(V)sudo make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(TARGETDIR) $(OUTPUT)
+	$(V)make --directory=kernel ARCH=arm modules_install INSTALL_MOD_PATH=$(TARGETDIR) $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -662,16 +663,16 @@ install_addons:
 install_adminka:
 	$(ECHO) "\033[1mCopying admin panel\033[0m"
 	$(V)mkdir -p $(TARGETDIR)/var/www $(OUTPUT)
-	$(V)sudo cp -r adminka/www/* $(TARGETDIR)/var/www $(OUTPUT)
+	$(V)cp -r adminka/www/* $(TARGETDIR)/var/www $(OUTPUT)
 	$(V)mkdir -p $(TARGETDIR)/var/www_user $(OUTPUT)
-	$(V)sudo cp -r adminka/www_user/* $(TARGETDIR)/var/www_user $(OUTPUT)
+	$(V)cp -r adminka/www_user/* $(TARGETDIR)/var/www_user $(OUTPUT)
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
 #install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_kernel_fs  install_modules install_dsp install_addons install_adminka sync_partitions umount_partitions
 #install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsbuild install_kernel_fs install_addons sync_partitions umount_partitions
 #install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons sync_partitions umount_partitions
-install_internal:: install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons
+install_internal:: install_adminka install_modules install_dsp install_drivers fsbuild install_fs install_kernel install_addons
 img_install:: img_prepare img_mount install_internal
 
 	$(ECHO) "   Default user: root"
