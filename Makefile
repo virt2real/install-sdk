@@ -432,7 +432,7 @@ install_drivers:
 	$(ECHO) ""
 	$(ECHO) "\033[1mInstalling drivers \033[0m"
 	$(ECHO) ""
-	$(V)cd drivers && ARCH=arm CROSS_COMPILE=$(CROSSCOMPILE) ./build.sh INSTALL
+	$(V)cd drivers && TARGETDIR=${TARGETDIR} KERNEL_NAME=${KERNEL_NAME} ./build.sh INSTALL
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
 
@@ -461,8 +461,8 @@ check_mount:
 	$(V)if [ ! -d $(MPBOOT) ] || [ ! -d $(MPROOT) ] ; \
 		then \
 			$(M_ECHO) "\033[1mPartitions not mounted use make sd_mount or make img_mount\033[0m"; \
-			 $(M_ECHO) ""; \
-			 exit 1; \
+			$(M_ECHO) ""; \
+			exit 1; \
 		fi
 
 # SD card
@@ -544,12 +544,12 @@ install_bootloader:: install_intro getuboot getdvsdk
 #
 img_install_intro:
 	$(ECHO) ""
-
+	$(V)make umount_partitions
 	$(V)if [ ! "$(OK)" = "1" ] ; then \
 	$(M_ECHO) "" ; \
 	$(M_ECHO) "\033[1;34mMain installer for Virt2real\033[0m" ; \
 	$(M_ECHO) "" ; \
-	$(M_ECHO) "\033[31mWARNING!!! Image \033[1m$(IMGNAME)\033[0m \033[31mwill be erased! \033[0m" ; \
+	$(M_ECHO) "\033[31mWARNING!!! Image \033[1m$(IMGPATH)\033[0m \033[31mwill be erased! \033[0m" ; \
 	$(M_ECHO) "" ; \
 	read -p "Press Enter to continue or Ctrl-C to abort" ; \
 	fi
@@ -558,9 +558,10 @@ img_install_intro:
 	$(ECHO) ""
 	$(V)OK=1
 
-img_prepare:: img_install_intro umount_partitions
+img_prepare:: img_install_intro
 	$(ECHO) "\033[1mCreate image file...\033[0m"
-	$(V)if [ ! -d images ] ; mkdir images ; fi
+	$(V)make umount_partitions
+	$(V)if [ ! -d images ] ; then mkdir images ; fi
 	$(V)dd if=/dev/zero of=${IMGPATH} bs=1M count=1000
 	$(V)sudo losetup /dev/loop0 ${IMGPATH}
 	$(ECHO) ""
@@ -582,7 +583,7 @@ img_prepare:: img_install_intro umount_partitions
 	$(V)./IMG_MOUNT.sh $(IMGPATH)
 	$(V)sudo mkfs.vfat -F 32 /dev/loop1 -n boot
 	$(V)sudo mkfs.ext3 /dev/loop2 -L root
-	
+
 	$(ECHO) "";
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
@@ -593,7 +594,7 @@ img_mount:: umount_partitions
 
 	$(ECHO) "\033[1mMounting image...\033[0m"
 	$(V)./IMG_MOUNT.sh $(IMGPATH)
-	
+
 	$(ECHO) "";
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
@@ -604,7 +605,7 @@ img_mount:: umount_partitions
 	$(ECHO) ""
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
-	
+
 	$(ECHO) "\033[1mMounting root partition\033[0m"
 	$(V)mkdir -p ${MPROOT}
 	$(V)sudo mount /dev/loop2 ${MPROOT}
@@ -672,7 +673,7 @@ install_adminka:
 #install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons sync_partitions umount_partitions
 install_internal:: install_adminka install_modules install_dsp install_drivers fsrelease install_kernel_fs install_addons
 img_install:: img_prepare img_mount install_internal
-	
+
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
 	$(ECHO) ""
@@ -680,7 +681,7 @@ img_install:: img_prepare img_mount install_internal
 	$(ECHO) "\033[1mNow you can unmount image $(IMGPATH)\033[0m"
 
 install:: install_intro umount_partitions prepare_partitions install_bootloader mount_partitions install_internal
-	
+
 	$(ECHO) "   Default user: root"
 	$(ECHO) "   Default password: root"
 	$(ECHO) ""
@@ -807,7 +808,7 @@ nandinstallcard:
 	$(V)$(M_ECHO) "\033[1mUmounting boot partition\033[0m"
 
 	$(V)umount $(MOUNTPOINT)/boot
-	$(V)rmdir $(MOUNTPOINT)/boot	
+	$(V)rmdir $(MOUNTPOINT)/boot
 
 	$(ECHO) "\n\033[1mInstalling SD card for NAND flasher done\033[0m"
 	$(V)$(ECHO) ""
@@ -871,7 +872,6 @@ download_current:
 
 updateprefix:
 	$(ECHO) "\n\033[1mUpdate Virt2real SDK components\033[0m"
-	
 
 update:: updateprefix adminkaupdate dvsdkupdate fsupdate kernelupdate ubootupdate nandupdate
 
