@@ -561,7 +561,7 @@ img_install_intro:
 img_prepare:: img_install_intro
 	$(ECHO) "\033[1mCreate image file...\033[0m"
 	$(V)make umount_partitions
-	$(V)if [ ! -d images ] ; mkdir images ; fi
+	$(V)if [ ! -d images ] ; then mkdir images ; fi
 	$(V)dd if=/dev/zero of=${IMGPATH} bs=1M count=1000
 	$(V)sudo losetup /dev/loop0 ${IMGPATH}
 	$(ECHO) ""
