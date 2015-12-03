@@ -86,6 +86,7 @@ help:
 	$(ECHO) ""
 	$(ECHO) "   sd_install SDNAME=/dev/sd	- install all to the sd card"
 	$(ECHO) "   img_install <IMGNAME=imgfile>	- install all to the img file"
+	$(ECHO) "   img_umount				- umount img file"
 	$(ECHO) ""
 	$(ECHO) "   sd_prepare SDNAME=/dev/sd	- format and install bootloader to the sd card"
 	$(ECHO) "   sd_mount SDNAME=/dev/sd	- mount sd card"
@@ -103,6 +104,7 @@ help:
 	$(ECHO) ""
 	$(ECHO) "   fsconfig		- config filesystem"
 	$(ECHO) "   fsclean		- clean filesystem"
+	$(ECHO) "   fsclean_target	- clean <pkg> installed_stamp and remove target dir"
 	$(ECHO) "   fsbuild		- build filesystem"
 	$(ECHO) ""
 	$(ECHO) "   dvsdkbuild		- build DVSDK"
@@ -311,6 +313,17 @@ fsclean:
 	$(ECHO) "\033[1;34mLinux Filesystem clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
 	$(V)make --directory=fs ARCH=arm clean
+
+fsclean_target:
+	$(ECHO) ""
+	$(ECHO) "\033[1;34mBuildroot remove output/build/<pkg>/.stamp_target_installed\033[0m"
+	$(ECHO) "\033[1;34mBuildroot remove output/target\033[0m"
+	$(ECHO) ""
+	$(V)find fs/output/build/ -type f -name ".stamp_target_installed" -delete
+	$(V)rm -r -f fs/output/target
+	$(ECHO) ""
+	$(ECHO) "\n\033[1mFilesystem build done\033[0m"
+	$(ECHO) ""
 
 fsbuild:
 	$(ECHO) ""
@@ -612,6 +625,8 @@ img_mount:: umount_partitions
 	$(ECHO) ""
 	$(ECHO) "\033[32m   done\033[0m"
 	$(ECHO) ""
+
+img_umount:: umount_partitions
 
 # install files to the mounted partitions
 #
