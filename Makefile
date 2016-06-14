@@ -580,7 +580,7 @@ img_prepare:: img_install_intro
 	$(ECHO) ""
 	$(ECHO) "\033[32m   done\033[0m"
 
-	$(V)echo -e "1,5,0xC,*\n6,119,L" | sudo sfdisk /dev/loop0 -q -D -H255 -S63 --force ${OUTPUT}
+	$(V)echo -e "1,48,0xC,*\n,,,-" | sudo sfdisk --in-order --Linux --unit M /dev/loop0 ${OUTPUT}
 
 	sleep 1
 
