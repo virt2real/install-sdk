@@ -359,14 +359,14 @@ dvsdkbuild:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK build for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=dvsdk CSTOOL_PREFIX=$(CROSSCOMPILE) LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel  cmem edma irq dm365mm dmai
+	$(V)make --directory=dvsdk CSTOOL_PREFIX=$(CROSSCOMPILE) LINUXKERNEL_INSTALL_DIR=$(DEVDIR)/kernel  cmem edma irq vicp dm365mm dmai
 	$(ECHO) "\n\033[1mDVSDK build  done\033[0m"
 
 dvsdkclean:
 	$(ECHO) ""
 	$(ECHO) "\033[1;34mDVSDK clean for Virt2real SDK\033[0m"
 	$(ECHO) ""
-	$(V)make --directory=dvsdk cmem_clean edma_clean irq_clean dm365mm_clean dmai_clean
+	$(V)make --directory=dvsdk cmem_clean edma_clean irq_clean vicp_clean dm365mm_clean dmai_clean install_clean
 	$(ECHO) "\n\033[1mDVSDK clean  done\033[0m"
 
 dvsdkinstall:
